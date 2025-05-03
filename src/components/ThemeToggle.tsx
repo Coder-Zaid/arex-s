@@ -20,6 +20,7 @@ const ThemeToggle = () => {
       ) : (
         <Sun size={18} />
       )}
+      <span className="sr-only">{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
     </Button>
   );
 };
