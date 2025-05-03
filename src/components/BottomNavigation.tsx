@@ -3,16 +3,18 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, Heart, ShoppingCart, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/context/ThemeContext';
 
 const BottomNavigation = () => {
   const location = useLocation();
+  const { theme } = useTheme();
   
   const isActive = (path: string) => {
     return location.pathname === path;
   };
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 z-10">
+    <div className={`fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-t py-2 px-4 z-10`}>
       <div className="flex justify-around items-center">
         <NavItem 
           to="/"
@@ -56,17 +58,21 @@ interface NavItemProps {
   active: boolean;
 }
 
-const NavItem = ({ to, icon, label, active }: NavItemProps) => (
-  <Link 
-    to={to} 
-    className={cn(
-      "flex flex-col items-center space-y-1", 
-      active ? "text-brand-blue" : "text-gray-500"
-    )}
-  >
-    {icon}
-    <span className="text-xs">{label}</span>
-  </Link>
-);
+const NavItem = ({ to, icon, label, active }: NavItemProps) => {
+  const { theme } = useTheme();
+  
+  return (
+    <Link 
+      to={to} 
+      className={cn(
+        "flex flex-col items-center space-y-1", 
+        active ? "text-brand-blue" : theme === 'dark' ? "text-gray-400" : "text-gray-500"
+      )}
+    >
+      {icon}
+      <span className="text-xs">{label}</span>
+    </Link>
+  );
+};
 
 export default BottomNavigation;

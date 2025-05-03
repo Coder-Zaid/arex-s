@@ -8,6 +8,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import { User, ShoppingCart, Heart, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ThemeToggle from './ThemeToggle';
+import SettingsMenu from './SettingsMenu';
 
 const Header = () => {
   const { isAuthenticated, user } = useAuth();
@@ -38,6 +39,7 @@ const Header = () => {
           {/* Navigation Icons */}
           <div className="flex items-center space-x-4">
             <ThemeToggle />
+            <SettingsMenu />
             
             <Link to="/wishlist" className="relative">
               <Heart size={20} />

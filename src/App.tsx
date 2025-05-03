@@ -9,6 +9,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { OrderProvider } from "@/context/OrderContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { AppSettingsProvider } from "@/context/AppSettingsContext";
 import Layout from "@/components/Layout";
 
 // Pages
@@ -31,34 +32,36 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ThemeProvider>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <OrderProvider>
-                <BrowserRouter>
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<HomePage />} />
-                      <Route path="/product/:id" element={<ProductDetailPage />} />
-                      <Route path="/cart" element={<CartPage />} />
-                      <Route path="/wishlist" element={<WishlistPage />} />
-                      <Route path="/search" element={<SearchPage />} />
-                      <Route path="/login" element={<LoginPage />} />
-                      <Route path="/register" element={<RegisterPage />} />
-                      <Route path="/profile" element={<ProfilePage />} />
-                      <Route path="/checkout" element={<CheckoutPage />} />
-                      <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-                      <Route path="/order/:id" element={<OrderDetailsPage />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Layout>
-                  <Toaster />
-                  <Sonner />
-                </BrowserRouter>
-              </OrderProvider>
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
+        <AppSettingsProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <OrderProvider>
+                  <BrowserRouter>
+                    <Layout>
+                      <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/product/:id" element={<ProductDetailPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/wishlist" element={<WishlistPage />} />
+                        <Route path="/search" element={<SearchPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                        <Route path="/order/:id" element={<OrderDetailsPage />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Layout>
+                    <Toaster />
+                    <Sonner />
+                  </BrowserRouter>
+                </OrderProvider>
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </AppSettingsProvider>
       </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
