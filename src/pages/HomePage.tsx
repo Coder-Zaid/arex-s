@@ -5,12 +5,14 @@ import ProductCard from '@/components/ProductCard';
 import { products, banners } from '@/data/products';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 const HomePage = () => {
   // Filter products for each section
   const featuredProducts = products.filter(p => p.featured);
   const newProducts = products.filter(p => p.isNew);
   const saleProducts = products.filter(p => p.onSale);
+  const { currencySymbol } = useAppSettings();
   
   return (
     <div className="pb-20">
@@ -22,7 +24,7 @@ const HomePage = () => {
       {/* Featured Products */}
       <section className="my-6 px-4">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-bold text-lg">Featured Products</h2>
+          <h2 className="font-bold text-lg text-foreground">Featured Products</h2>
           <Link to="/category/featured" className="text-brand-blue text-sm flex items-center">
             View all <ArrowRight size={14} className="ml-1" />
           </Link>
@@ -37,7 +39,7 @@ const HomePage = () => {
       {/* New Arrivals */}
       <section className="my-6 px-4">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-bold text-lg">New Arrivals</h2>
+          <h2 className="font-bold text-lg text-foreground">New Arrivals</h2>
           <Link to="/category/new" className="text-brand-blue text-sm flex items-center">
             View all <ArrowRight size={14} className="ml-1" />
           </Link>
@@ -52,7 +54,7 @@ const HomePage = () => {
       {/* Flash Deals */}
       <section className="my-6 px-4">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-bold text-lg">Flash Deals</h2>
+          <h2 className="font-bold text-lg text-foreground">Flash Deals</h2>
           <Link to="/category/sale" className="text-brand-blue text-sm flex items-center">
             View all <ArrowRight size={14} className="ml-1" />
           </Link>
@@ -67,13 +69,13 @@ const HomePage = () => {
       {/* Categories */}
       <section className="my-6 px-4">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="font-bold text-lg">Browse Categories</h2>
+          <h2 className="font-bold text-lg text-foreground">Browse Categories</h2>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {['TV', 'Audio', 'Computers', 'Wearables', 'Smart Home', 'Appliances'].map((category) => (
             <Link key={category} to={`/category/${category.toLowerCase()}`}>
-              <div className="bg-gray-100 rounded-lg p-3 text-center hover:bg-gray-200 transition-colors">
-                <span className="font-medium">{category}</span>
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <span className="font-medium text-foreground">{category}</span>
               </div>
             </Link>
           ))}

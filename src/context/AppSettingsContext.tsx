@@ -10,6 +10,7 @@ interface AppSettingsContextType {
   setCurrency: (currency: CurrencyType) => void;
   setLanguage: (language: LanguageType) => void;
   currencySymbol: string;
+  isRtl: boolean;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -28,12 +29,14 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
     const savedCurrency = localStorage.getItem('currency') as CurrencyType;
     const savedLanguage = localStorage.getItem('language') as LanguageType;
     
-    if (savedCurrency) {
+    if (savedCurrency && (savedCurrency === 'USD' || savedCurrency === 'SAR')) {
       setCurrency(savedCurrency);
     }
     
-    if (savedLanguage) {
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ar')) {
       setLanguage(savedLanguage);
+      document.documentElement.dir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = savedLanguage;
     }
   }, []);
 
@@ -45,8 +48,13 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
   const handleSetLanguage = (newLanguage: LanguageType) => {
     setLanguage(newLanguage);
     localStorage.setItem('language', newLanguage);
-    // You might want to implement more language-related logic here
+    
+    // Set RTL direction for Arabic
+    document.documentElement.dir = newLanguage === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = newLanguage;
   };
+
+  const isRtl = language === 'ar';
 
   return (
     <AppSettingsContext.Provider 
@@ -55,7 +63,8 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
         language, 
         setCurrency: handleSetCurrency, 
         setLanguage: handleSetLanguage,
-        currencySymbol: currencySymbols[currency]
+        currencySymbol: currencySymbols[currency],
+        isRtl
       }}
     >
       {children}

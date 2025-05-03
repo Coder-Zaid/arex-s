@@ -14,7 +14,7 @@ const BottomNavigation = () => {
   };
   
   return (
-    <div className={`fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-t py-2 px-4 z-10`}>
+    <div className={`fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'} border-t py-2 px-4 z-10`}>
       <div className="flex justify-around items-center">
         <NavItem 
           to="/"

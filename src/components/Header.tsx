@@ -20,8 +20,13 @@ const Header = () => {
       <div className="container px-4 py-3 mx-auto">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="font-bold text-xl text-brand-blue">
-            GadgetHaven
+          <Link to="/" className="flex items-center">
+            <img 
+              src="/lovable-uploads/f1f11f46-3e99-449c-9040-b277a9805245.png" 
+              alt="Arex Logo" 
+              className="h-8 w-8 mr-2" 
+            />
+            <span className="font-bold text-xl text-brand-blue">Arex</span>
           </Link>
           
           {/* Search Bar (Mobile Hidden) */}
