@@ -7,6 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { User, ShoppingCart, Heart, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import ThemeToggle from './ThemeToggle';
 
 const Header = () => {
   const { isAuthenticated, user } = useAuth();
@@ -14,7 +15,7 @@ const Header = () => {
   const { items: wishlistItems } = useWishlist();
   
   return (
-    <header className="sticky top-0 z-10 bg-white shadow-sm">
+    <header className="sticky top-0 z-10 bg-background border-b border-border shadow-sm">
       <div className="container px-4 py-3 mx-auto">
         <div className="flex justify-between items-center">
           {/* Logo */}
@@ -36,6 +37,8 @@ const Header = () => {
           
           {/* Navigation Icons */}
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
+            
             <Link to="/wishlist" className="relative">
               <Heart size={20} />
               {wishlistItems.length > 0 && (
@@ -62,7 +65,7 @@ const Header = () => {
       </div>
       
       {/* Mobile Search Bar */}
-      <div className="md:hidden bg-gray-50 px-4 py-2">
+      <div className="md:hidden bg-gray-50 dark:bg-gray-800 px-4 py-2">
         <div className="relative w-full">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input 

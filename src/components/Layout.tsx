@@ -10,7 +10,7 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="mobile-container">
+    <div className="mobile-container bg-background">
       <Header />
       <main>
         {children}
