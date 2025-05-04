@@ -15,7 +15,14 @@ const Layout = ({ children }: LayoutProps) => {
   const { isRtl } = useAppSettings();
 
   return (
-    <div className={`mobile-container bg-background ${theme} transition-colors duration-300`} dir={isRtl ? 'rtl' : 'ltr'}>
+    <div 
+      className={`mobile-container ${theme} transition-colors duration-300`} 
+      dir={isRtl ? 'rtl' : 'ltr'}
+      style={{ 
+        backgroundColor: theme === 'dark' ? '#000000' : '', 
+        color: theme === 'dark' ? '#ffffff' : '' 
+      }}
+    >
       <Header />
       <main>
         {children}

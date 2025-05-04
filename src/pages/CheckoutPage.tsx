@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useOrder } from '@/context/OrderContext';
-import { ChevronLeft, MapPin, CreditCard, AlertCircle, Cash } from 'lucide-react';
+import { ChevronLeft, MapPin, CreditCard, AlertCircle, DollarSign } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAppSettings } from '@/context/AppSettingsContext';
 
@@ -134,7 +133,7 @@ const CheckoutPage = () => {
                     <RadioGroupItem value="cash" id="cash" />
                     <Label htmlFor="cash" className="flex-1 cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <Cash size={16} className="text-green-500" />
+                        <DollarSign size={16} className="text-green-500" />
                         <div>
                           <div className="font-medium">{t.cashOnDelivery}</div>
                           <div className="text-xs text-gray-500">
