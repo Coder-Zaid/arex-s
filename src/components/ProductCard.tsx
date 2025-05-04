@@ -8,6 +8,7 @@ import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { Heart, ShoppingCart } from 'lucide-react';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +17,7 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { currencySymbol, language } = useAppSettings();
   
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,6 +35,41 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.stopPropagation();
     addToCart(product);
   };
+
+  // Format number based on language
+  const formatNumber = (num: number) => {
+    if (language === 'ar') {
+      // Convert to Arabic numerals
+      return num.toFixed(2).replace(/\d/g, (d) => 
+        String.fromCharCode(1632 + parseInt(d)));
+    }
+    return num.toFixed(2);
+  };
+  
+  // Display rating as stars
+  const renderRatingStars = (rating: number) => {
+    return (
+      <div className="flex">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span 
+            key={star} 
+            className={`text-xs ${
+              star <= Math.floor(rating) 
+                ? 'text-yellow-500' 
+                : 'text-gray-300'
+            }`}
+          >
+            ★
+          </span>
+        ))}
+        <span className="text-xs text-gray-500 ml-1">
+          {language === 'ar' ? 
+            `(${rating.toString().replace(/\d/g, (d) => String.fromCharCode(1632 + parseInt(d)))})` :
+            `(${rating})`}
+        </span>
+      </div>
+    );
+  };
   
   return (
     <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-md">
@@ -47,10 +84,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {product.onSale && (
-              <Badge className="bg-brand-orange">Sale</Badge>
+              <Badge className="bg-brand-orange">
+                {language === 'ar' ? 'تخفيض' : 'Sale'}
+              </Badge>
             )}
             {product.isNew && (
-              <Badge className="bg-green-500">New</Badge>
+              <Badge className="bg-green-500">
+                {language === 'ar' ? 'جديد' : 'New'}
+              </Badge>
             )}
           </div>
           
@@ -72,17 +113,22 @@ const ProductCard = ({ product }: ProductCardProps) => {
         
         <CardContent className="p-3">
           <div className="flex flex-col gap-2">
-            <h3 className="font-medium line-clamp-2 text-sm">{product.name}</h3>
+            <h3 className="font-medium line-clamp-2 text-sm text-foreground">{product.name}</h3>
             
             <div className="flex items-baseline gap-2">
-              <span className="font-bold text-brand-blue">${product.price.toFixed(2)}</span>
+              <span className="font-bold text-brand-blue">
+                {currencySymbol}{formatNumber(product.price)}
+              </span>
               {product.oldPrice && (
-                <span className="text-gray-400 line-through text-xs">${product.oldPrice.toFixed(2)}</span>
+                <span className="text-gray-400 line-through text-xs">
+                  {currencySymbol}{formatNumber(product.oldPrice)}
+                </span>
               )}
             </div>
             
             <div className="flex justify-between items-center mt-2">
-              <div className="text-xs text-gray-500">{product.brand}</div>
+              {/* Stars Rating instead of brand */}
+              {renderRatingStars(product.rating)}
               
               <Button
                 size="sm"
@@ -91,7 +137,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 onClick={handleAddToCart}
               >
                 <ShoppingCart size={14} />
-                Add
+                {language === 'ar' ? 'أضف' : 'Add'}
               </Button>
             </div>
           </div>

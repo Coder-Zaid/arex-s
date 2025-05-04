@@ -4,46 +4,49 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, Heart, ShoppingCart, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/context/ThemeContext';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 const BottomNavigation = () => {
   const location = useLocation();
   const { theme } = useTheme();
+  const { language, translations } = useAppSettings();
+  const t = translations[language];
   
   const isActive = (path: string) => {
     return location.pathname === path;
   };
   
   return (
-    <div className={`fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'} border-t py-2 px-4 z-10`}>
+    <div className={`fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'} border-t py-2 px-4 z-10 max-w-[480px] mx-auto`}>
       <div className="flex justify-around items-center">
         <NavItem 
           to="/"
           icon={<Home size={20} />}
-          label="Home"
+          label={t.home}
           active={isActive('/')}
         />
         <NavItem 
           to="/search"
           icon={<Search size={20} />}
-          label="Search"
+          label={t.search}
           active={isActive('/search')}
         />
         <NavItem 
           to="/wishlist"
           icon={<Heart size={20} />}
-          label="Wishlist"
+          label={t.wishlist}
           active={isActive('/wishlist')}
         />
         <NavItem 
           to="/cart"
           icon={<ShoppingCart size={20} />}
-          label="Cart"
+          label={t.cart}
           active={isActive('/cart')}
         />
         <NavItem 
           to="/profile"
           icon={<User size={20} />}
-          label="Profile"
+          label={t.profile}
           active={isActive('/profile')}
         />
       </div>

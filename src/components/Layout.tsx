@@ -15,7 +15,7 @@ const Layout = ({ children }: LayoutProps) => {
   const { isRtl } = useAppSettings();
 
   return (
-    <div className={`mobile-container bg-background ${theme}`} dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className={`mobile-container bg-background ${theme} transition-colors duration-300`} dir={isRtl ? 'rtl' : 'ltr'}>
       <Header />
       <main>
         {children}

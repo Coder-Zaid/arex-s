@@ -11,6 +11,7 @@ interface AppSettingsContextType {
   setLanguage: (language: LanguageType) => void;
   currencySymbol: string;
   isRtl: boolean;
+  translations: Record<string, Record<string, string>>;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -18,6 +19,42 @@ const AppSettingsContext = createContext<AppSettingsContextType | undefined>(und
 export const currencySymbols = {
   USD: '$',
   SAR: 'ر.س'
+};
+
+// Add translations for Arabic and English
+export const translations = {
+  en: {
+    home: "Home",
+    search: "Search",
+    wishlist: "Wishlist",
+    cart: "Cart",
+    profile: "Profile",
+    featuredProducts: "Featured Products",
+    newArrivals: "New Arrivals",
+    flashDeals: "Flash Deals",
+    browseCategories: "Browse Categories",
+    viewAll: "View all",
+    addToCart: "Add to Cart",
+    cashOnDelivery: "Cash on Delivery",
+    cardPayment: "Credit/Debit Card",
+    placeOrder: "Place Order",
+  },
+  ar: {
+    home: "الرئيسية",
+    search: "بحث",
+    wishlist: "المفضلة",
+    cart: "السلة",
+    profile: "الحساب",
+    featuredProducts: "المنتجات المميزة",
+    newArrivals: "وصل حديثا",
+    flashDeals: "عروض سريعة",
+    browseCategories: "تصفح الفئات",
+    viewAll: "عرض الكل",
+    addToCart: "أضف إلى السلة",
+    cashOnDelivery: "الدفع عند الاستلام",
+    cardPayment: "بطاقة ائتمان/خصم",
+    placeOrder: "إتمام الطلب",
+  }
 };
 
 export const AppSettingsProvider = ({ children }: { children: React.ReactNode }) => {
@@ -64,7 +101,8 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
         setCurrency: handleSetCurrency, 
         setLanguage: handleSetLanguage,
         currencySymbol: currencySymbols[currency],
-        isRtl
+        isRtl,
+        translations
       }}
     >
       {children}

@@ -75,6 +75,11 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Fix RTL text direction for number inputs */
+  input[type="number"] {
+    direction: ltr;
+  }
 }
 
 /* Custom styles */
@@ -94,6 +99,15 @@
 .banner-container {
   overflow: hidden;
   border-radius: var(--radius);
+}
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
 }
 
 @layer utilities {
