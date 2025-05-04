@@ -24,18 +24,19 @@ const Header = () => {
             <img 
               src="/lovable-uploads/f1f11f46-3e99-449c-9040-b277a9805245.png" 
               alt="Arex Logo" 
-              className="h-8 w-8 mr-2" 
+              className="h-10 w-10 mr-2" 
             />
-            <span className="font-bold text-xl text-brand-blue">Arex</span>
+            <span className="font-bold text-xl text-brand-blue hidden sm:inline-block">Arex</span>
+            <span className="font-bold text-xl text-brand-blue inline-block sm:hidden">Arex</span>
           </Link>
           
           {/* Search Bar (Mobile Hidden) */}
-          <div className="hidden md:flex w-full max-w-[150px] mx-4">
+          <div className="hidden md:flex w-full max-w-[120px] mx-4">
             <div className="relative w-full">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input 
                 type="search" 
-                placeholder="Search products..." 
+                placeholder="Search..." 
                 className="pl-8 w-full h-8 text-sm"
               />
             </div>
@@ -77,7 +78,7 @@ const Header = () => {
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input 
             type="search" 
-            placeholder="Search products..." 
+            placeholder="Search..." 
             className="pl-8 w-full h-8 text-sm"
           />
         </div>

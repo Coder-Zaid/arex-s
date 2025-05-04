@@ -9,6 +9,7 @@ interface OrderContextType {
   orders: Order[];
   createOrder: (items: CartItem[], address: string, paymentMethod: 'cash' | 'card') => void;
   getOrderById: (orderId: string) => Order | undefined;
+  cancelOrder: (orderId: string) => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -72,12 +73,31 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return orders.find(order => order.id === orderId);
   };
 
+  const cancelOrder = (orderId: string) => {
+    setOrders(prevOrders => {
+      return prevOrders.map(order => {
+        if (order.id === orderId) {
+          return { ...order, status: 'cancelled' };
+        }
+        return order;
+      });
+    });
+
+    toast({
+      title: language === 'ar' ? "تم إلغاء الطلب" : "Order cancelled",
+      description: language === 'ar'
+        ? `تم إلغاء الطلب رقم #${orderId.substr(-6).replace(/\d/g, d => String.fromCharCode(1632 + parseInt(d)))}`
+        : `Order #${orderId.substr(-6)} has been cancelled`,
+    });
+  };
+
   return (
     <OrderContext.Provider 
       value={{ 
         orders, 
         createOrder, 
-        getOrderById
+        getOrderById,
+        cancelOrder
       }}
     >
       {children}

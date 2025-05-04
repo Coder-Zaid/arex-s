@@ -25,50 +25,50 @@ import CheckoutPage from "@/pages/CheckoutPage";
 import OrderConfirmationPage from "@/pages/OrderConfirmationPage";
 import OrderDetailsPage from "@/pages/OrderDetailsPage";
 import SearchPage from "@/pages/SearchPage";
+import AboutPage from "@/pages/AboutPage";
 import NotFound from "@/pages/NotFound";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => (
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AppSettingsProvider>
-          <TooltipProvider>
-            <AuthProvider>
-              <CartProvider>
-                <WishlistProvider>
-                  <OrderProvider>
-                    <BrowserRouter>
-                      <Layout>
-                        <Routes>
-                          <Route path="/" element={<HomePage />} />
-                          <Route path="/product/:id" element={<ProductDetailPage />} />
-                          <Route path="/cart" element={<CartPage />} />
-                          <Route path="/wishlist" element={<WishlistPage />} />
-                          <Route path="/search" element={<SearchPage />} />
-                          <Route path="/login" element={<LoginPage />} />
-                          <Route path="/register" element={<RegisterPage />} />
-                          <Route path="/profile" element={<ProfilePage />} />
-                          <Route path="/checkout" element={<CheckoutPage />} />
-                          <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-                          <Route path="/order/:id" element={<OrderDetailsPage />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </Layout>
-                      <Toaster />
-                      <Sonner />
-                    </BrowserRouter>
-                  </OrderProvider>
-                </WishlistProvider>
-              </CartProvider>
-            </AuthProvider>
-          </TooltipProvider>
-        </AppSettingsProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
+      <AppSettingsProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <OrderProvider>
+                  <BrowserRouter>
+                    <Layout>
+                      <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/product/:id" element={<ProductDetailPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/wishlist" element={<WishlistPage />} />
+                        <Route path="/search" element={<SearchPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                        <Route path="/order/:id" element={<OrderDetailsPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Layout>
+                    <Toaster />
+                    <Sonner />
+                  </BrowserRouter>
+                </OrderProvider>
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </AppSettingsProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
 );
 
 export default App;

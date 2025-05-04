@@ -33,7 +33,7 @@ export interface Order {
   items: CartItem[];
   totalAmount: number;
   currency: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentMethod: 'cash' | 'card';
   deliveryAddress: string;
   orderDate: string;

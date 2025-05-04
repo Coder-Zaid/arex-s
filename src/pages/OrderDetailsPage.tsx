@@ -2,223 +2,190 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useOrder } from '@/context/OrderContext';
-import { ChevronLeft, Package, Truck } from 'lucide-react';
+import { useAppSettings } from '@/context/AppSettingsContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const OrderDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getOrderById } = useOrder();
-  
-  const order = getOrderById(id || '');
-  
+  const { getOrderById, cancelOrder } = useOrder();
+  const { currencySymbol, currency, language, translations } = useAppSettings();
+  const t = translations[language];
+
+  const order = id ? getOrderById(id) : undefined;
+
   if (!order) {
     return (
-      <div className="p-4 flex flex-col items-center justify-center h-[60vh]">
-        <h2 className="text-xl font-bold mb-2">Order not found</h2>
-        <p className="text-gray-500 mb-4">The order you're looking for doesn't exist</p>
-        <Button onClick={() => navigate('/profile')}>Back to Profile</Button>
+      <div className="p-4 text-center">
+        <h1 className="text-xl font-semibold mb-4">{language === 'ar' ? 'الطلب غير موجود' : 'Order Not Found'}</h1>
+        <Button onClick={() => navigate('/')}>{language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}</Button>
       </div>
     );
   }
-  
-  const orderDate = new Date(order.orderDate).toLocaleDateString();
-  const estimatedDelivery = order.estimatedDelivery 
-    ? new Date(order.estimatedDelivery).toLocaleDateString() 
-    : 'Calculating...';
-  
+
+  // Format number based on language
+  const formatNumber = (num: number) => {
+    if (language === 'ar') {
+      // Convert to Arabic numerals
+      return num.toFixed(2).replace(/\d/g, (d) => String.fromCharCode(1632 + parseInt(d)));
+    }
+    return num.toFixed(2);
+  };
+
+  // Apply exchange rate for currencies (approximate USD:SAR ratio)
+  const adjustCurrency = (amount: number) => {
+    if (currency === 'USD' && order.currency === 'SAR') {
+      return amount / 3.75; // Convert from SAR to USD
+    } else if (currency === 'SAR' && order.currency === 'USD') {
+      return amount * 3.75; // Convert from USD to SAR
+    }
+    return amount;
+  };
+
+  // Check if the order can be cancelled (pending or processing)
+  const canCancel = ['pending', 'processing'].includes(order.status);
+
+  const handleCancelOrder = () => {
+    cancelOrder(order.id);
+  };
+
   return (
-    <div className="pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm p-3 flex items-center">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ChevronLeft />
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">
+        {language === 'ar' ? 'تفاصيل الطلب' : 'Order Details'}
+      </h1>
+
+      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-6">
+        <div className="flex justify-between mb-2">
+          <span className="text-gray-500">{language === 'ar' ? 'رقم الطلب:' : 'Order ID:'}</span>
+          <span className="font-medium">
+            #{language === 'ar'
+              ? order.id.substr(-6).replace(/\d/g, (d) => String.fromCharCode(1632 + parseInt(d)))
+              : order.id.substr(-6)}
+          </span>
+        </div>
+        <div className="flex justify-between mb-2">
+          <span className="text-gray-500">{language === 'ar' ? 'الحالة:' : 'Status:'}</span>
+          <span className={`capitalize ${
+            order.status === 'delivered' ? 'text-green-500' : 
+            order.status === 'cancelled' ? 'text-red-500' : 'text-brand-blue'
+          }`}>
+            {language === 'ar' ? 
+              (order.status === 'pending' ? 'قيد الانتظار' : 
+              order.status === 'processing' ? 'قيد المعالجة' : 
+              order.status === 'shipped' ? 'تم الشحن' : 
+              order.status === 'delivered' ? 'تم التوصيل' :
+              order.status === 'cancelled' ? 'تم الإلغاء' : '') : 
+              order.status}
+          </span>
+        </div>
+        <div className="flex justify-between mb-2">
+          <span className="text-gray-500">{language === 'ar' ? 'التاريخ:' : 'Date:'}</span>
+          <span>
+            {language === 'ar'
+              ? new Date(order.orderDate).toLocaleDateString('ar-SA')
+              : new Date(order.orderDate).toLocaleDateString()}
+          </span>
+        </div>
+        <div className="flex justify-between mb-2">
+          <span className="text-gray-500">{language === 'ar' ? 'طريقة الدفع:' : 'Payment Method:'}</span>
+          <span>
+            {order.paymentMethod === 'cash'
+              ? (language === 'ar' ? 'الدفع عند الاستلام' : 'Cash on Delivery')
+              : (language === 'ar' ? 'بطاقة ائتمان' : 'Card')}
+          </span>
+        </div>
+        <div className="flex justify-between mb-2">
+          <span className="text-gray-500">{language === 'ar' ? 'عنوان التوصيل:' : 'Delivery Address:'}</span>
+          <span className="text-right">{order.deliveryAddress}</span>
+        </div>
+      </div>
+
+      <h2 className="font-semibold text-lg mb-3">
+        {language === 'ar' ? 'المنتجات' : 'Products'}
+      </h2>
+
+      <div className="space-y-3 mb-6">
+        {order.items.map((item) => (
+          <div key={item.product.id} className="flex justify-between items-center border-b pb-3">
+            <div className="flex items-center space-x-3">
+              <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded" />
+              <div>
+                <h3 className="font-medium">{item.product.name}</h3>
+                <p className="text-sm text-gray-500">
+                  {language === 'ar'
+                    ? `الكمية: ${String(item.quantity).replace(/\d/g, (d) => String.fromCharCode(1632 + parseInt(d)))}`
+                    : `Qty: ${item.quantity}`}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="font-medium">
+                {currencySymbol}{formatNumber(adjustCurrency(item.product.price * item.quantity))}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-6">
+        <div className="flex justify-between font-medium text-lg">
+          <span>{language === 'ar' ? 'المجموع:' : 'Total:'}</span>
+          <span>{currencySymbol}{formatNumber(adjustCurrency(order.totalAmount))}</span>
+        </div>
+      </div>
+
+      <div className="flex space-x-3 space-y-0 rtl:space-x-reverse">
+        <Button
+          variant="outline"
+          onClick={() => navigate('/')}
+        >
+          {language === 'ar' ? 'العودة للتسوق' : 'Continue Shopping'}
         </Button>
-        <h1 className="font-medium text-center flex-1 mr-8">Order #{order.id.substr(-6)}</h1>
-      </div>
-      
-      {/* Order Status */}
-      <div className="p-4">
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="font-bold mb-2">Order Status</h2>
-            
-            <div className="flex items-center mb-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                order.status === 'pending' || order.status === 'processing' || 
-                order.status === 'shipped' || order.status === 'delivered'
-                ? 'bg-brand-blue text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
-                1
-              </div>
-              <div className="h-1 flex-1 mx-2 bg-gray-200">
-                <div className={`h-full ${
-                  order.status === 'processing' || 
-                  order.status === 'shipped' || 
-                  order.status === 'delivered'
-                  ? 'bg-brand-blue' : 'bg-gray-200'
-                }`}></div>
-              </div>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                order.status === 'processing' || 
-                order.status === 'shipped' || 
-                order.status === 'delivered'
-                ? 'bg-brand-blue text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
-                2
-              </div>
-              <div className="h-1 flex-1 mx-2 bg-gray-200">
-                <div className={`h-full ${
-                  order.status === 'shipped' || 
-                  order.status === 'delivered'
-                  ? 'bg-brand-blue' : 'bg-gray-200'
-                }`}></div>
-              </div>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                order.status === 'shipped' || 
-                order.status === 'delivered'
-                ? 'bg-brand-blue text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
-                3
-              </div>
-              <div className="h-1 flex-1 mx-2 bg-gray-200">
-                <div className={`h-full ${
-                  order.status === 'delivered'
-                  ? 'bg-brand-blue' : 'bg-gray-200'
-                }`}></div>
-              </div>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                order.status === 'delivered'
-                ? 'bg-brand-blue text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
-                4
-              </div>
-            </div>
-            
-            <div className="flex justify-between text-xs text-center">
-              <div className="w-16">Ordered</div>
-              <div className="w-16">Processing</div>
-              <div className="w-16">Shipped</div>
-              <div className="w-16">Delivered</div>
-            </div>
-            
-            <div className="mt-4 flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium">Current Status</div>
-                <div className={`text-sm capitalize ${
-                  order.status === 'delivered' ? 'text-green-600' : 
-                  order.status === 'shipped' ? 'text-brand-blue' : 
-                  'text-yellow-600'
-                }`}>
-                  {order.status}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-medium">Estimated Delivery</div>
-                <div className="text-sm">{estimatedDelivery}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Order Details */}
-      <div className="px-4">
-        <h2 className="font-bold text-lg mb-3">Order Details</h2>
-        <Card className="mb-4">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Order ID</span>
-              <span>#{order.id.substr(-6)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Order Date</span>
-              <span>{orderDate}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Payment Method</span>
-              <span>{order.paymentMethod === 'cash' ? 'Cash on Delivery' : 'Card'}</span>
-            </div>
-          </CardContent>
-        </Card>
         
-        {/* Items */}
-        <h2 className="font-bold text-lg mb-3">Items</h2>
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            {order.items.map((item, index) => (
-              <React.Fragment key={item.product.id}>
-                <div className="flex gap-3 py-2">
-                  <img 
-                    src={item.product.image} 
-                    alt={item.product.name} 
-                    className="w-16 h-16 object-cover rounded-md"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-medium line-clamp-2">{item.product.name}</h3>
-                    <p className="text-sm text-gray-500">{item.product.brand}</p>
-                    <div className="flex justify-between mt-2">
-                      <span className="text-sm">Qty: {item.quantity}</span>
-                      <span className="font-medium">${(item.product.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-                {index < order.items.length - 1 && <Separator className="my-2" />}
-              </React.Fragment>
-            ))}
-            
-            <Separator className="my-3" />
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal</span>
-                <span>${order.totalAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Shipping</span>
-                <span>$5.99</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Tax</span>
-                <span>${(order.totalAmount * 0.05).toFixed(2)}</span>
-              </div>
-              <Separator className="my-2" />
-              <div className="flex justify-between font-bold">
-                <span>Total</span>
-                <span>${(order.totalAmount + 5.99 + (order.totalAmount * 0.05)).toFixed(2)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Shipping Address */}
-        <h2 className="font-bold text-lg mb-3">Shipping Address</h2>
-        <Card className="mb-4">
-          <CardContent className="p-4 flex">
-            <MapPin size={18} className="text-gray-400 mr-2 flex-shrink-0" />
-            <p className="text-sm">{order.deliveryAddress}</p>
-          </CardContent>
-        </Card>
-        
-        {/* Support */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-medium">Need Help?</h3>
-                <p className="text-sm text-gray-500">Contact our support team</p>
-              </div>
-              <Button size="sm" variant="outline">Contact</Button>
-            </div>
-          </CardContent>
-        </Card>
+        {canCancel && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">
+                {language === 'ar' ? 'إلغاء الطلب' : 'Cancel Order'}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {language === 'ar' ? 'تأكيد إلغاء الطلب' : 'Confirm Order Cancellation'}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {language === 'ar'
+                    ? 'هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.'
+                    : 'Are you sure you want to cancel this order? This action cannot be undone.'}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>
+                  {language === 'ar' ? 'تراجع' : 'Cancel'}
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={handleCancelOrder}>
+                  {language === 'ar' ? 'نعم، إلغاء الطلب' : 'Yes, Cancel Order'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
     </div>
   );
 };
-
-const MapPin = Truck; // Using Truck icon as a substitute for MapPin
 
 export default OrderDetailsPage;

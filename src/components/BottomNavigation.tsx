@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, ShoppingCart, User } from 'lucide-react';
+import { Home, Search, Heart, ShoppingCart, User, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
@@ -17,7 +17,7 @@ const BottomNavigation = () => {
   };
   
   return (
-    <div className={`fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'} border-t py-2 px-4 z-10 max-w-[480px] mx-auto`}>
+    <div className={`fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'} border-t py-2 px-1 z-10 max-w-[480px] mx-auto`}>
       <div className="flex justify-around items-center">
         <NavItem 
           to="/"
@@ -49,6 +49,12 @@ const BottomNavigation = () => {
           label={t.profile}
           active={isActive('/profile')}
         />
+        <NavItem 
+          to="/about"
+          icon={<Info size={20} />}
+          label={language === 'ar' ? 'عن الشركة' : 'About'}
+          active={isActive('/about')}
+        />
       </div>
     </div>
   );
@@ -68,7 +74,7 @@ const NavItem = ({ to, icon, label, active }: NavItemProps) => {
     <Link 
       to={to} 
       className={cn(
-        "flex flex-col items-center space-y-1", 
+        "flex flex-col items-center space-y-1 px-1", 
         active ? "text-brand-blue" : theme === 'dark' ? "text-gray-400" : "text-gray-500"
       )}
     >
