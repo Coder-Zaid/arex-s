@@ -38,6 +38,10 @@ export const translations = {
     cashOnDelivery: "Cash on Delivery",
     cardPayment: "Credit/Debit Card",
     placeOrder: "Place Order",
+    searchProducts: "Search products...",
+    results: "results",
+    noProductsFound: "No products found",
+    clearSearch: "Clear search",
   },
   ar: {
     home: "الرئيسية",
@@ -54,6 +58,10 @@ export const translations = {
     cashOnDelivery: "الدفع عند الاستلام",
     cardPayment: "بطاقة ائتمان/خصم",
     placeOrder: "إتمام الطلب",
+    searchProducts: "البحث عن المنتجات...",
+    results: "نتائج",
+    noProductsFound: "لا توجد منتجات",
+    clearSearch: "مسح البحث",
   }
 };
 

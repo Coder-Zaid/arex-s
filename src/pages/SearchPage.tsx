@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { products } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import { Search, ChevronLeft, Filter } from 'lucide-react';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 const SearchPage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const { language } = useAppSettings();
   
   const categories = Array.from(new Set(products.map(product => product.category)));
   
@@ -24,11 +26,21 @@ const SearchPage = () => {
     
     return matchesQuery && matchesCategory;
   });
+
+  // Format number based on language
+  const formatNumber = (num: number) => {
+    if (language === 'ar') {
+      // Convert to Arabic numerals
+      return num.toString().replace(/\d/g, (d) => 
+        String.fromCharCode(1632 + parseInt(d)));
+    }
+    return num.toString();
+  };
   
   return (
     <div className="pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm p-3 flex items-center">
+      <div className="sticky top-0 z-10 bg-background shadow-sm p-3 flex items-center">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ChevronLeft />
         </Button>
@@ -36,7 +48,7 @@ const SearchPage = () => {
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input 
             type="search" 
-            placeholder="Search products..." 
+            placeholder={language === 'ar' ? 'البحث عن المنتجات...' : 'Search products...'}
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -54,11 +66,11 @@ const SearchPage = () => {
             className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
               activeCategory === null 
                 ? 'bg-brand-blue text-white' 
-                : 'bg-gray-100 text-gray-700'
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
             }`}
             onClick={() => setActiveCategory(null)}
           >
-            All
+            {language === 'ar' ? 'الكل' : 'All'}
           </button>
           {categories.map((category) => (
             <button
@@ -66,11 +78,18 @@ const SearchPage = () => {
               className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
                 activeCategory === category 
                   ? 'bg-brand-blue text-white' 
-                  : 'bg-gray-100 text-gray-700'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
               }`}
               onClick={() => setActiveCategory(category)}
             >
-              {category}
+              {language === 'ar' ? {
+                'TV': 'تلفزيون',
+                'Audio': 'صوتيات',
+                'Computers': 'حواسيب',
+                'Wearables': 'أجهزة قابلة للارتداء',
+                'Smart Home': 'المنزل الذكي',
+                'Appliances': 'أجهزة منزلية'
+              }[category] || category : category}
             </button>
           ))}
         </div>
@@ -80,10 +99,26 @@ const SearchPage = () => {
       <div className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold">
-            {searchQuery ? `Results for "${searchQuery}"` : 'All Products'}
-            {activeCategory && ` in ${activeCategory}`}
+            {searchQuery 
+              ? (language === 'ar' 
+                ? `نتائج "${searchQuery}"` 
+                : `Results for "${searchQuery}"`) 
+              : (language === 'ar' ? 'جميع المنتجات' : 'All Products')}
+            {activeCategory && (language === 'ar' 
+              ? ` في ${
+                {
+                  'TV': 'تلفزيون',
+                  'Audio': 'صوتيات',
+                  'Computers': 'حواسيب',
+                  'Wearables': 'أجهزة قابلة للارتداء',
+                  'Smart Home': 'المنزل الذكي',
+                  'Appliances': 'أجهزة منزلية'
+                }[activeCategory] || activeCategory
+              }` 
+              : ` in ${activeCategory}`
+            )}
           </h2>
-          <span className="text-sm text-gray-500">{filteredProducts.length} results</span>
+          <span className="text-sm text-gray-500">{language === 'ar' ? formatNumber(filteredProducts.length) + ' منتج' : `${filteredProducts.length} results`}</span>
         </div>
         
         {filteredProducts.length > 0 ? (
@@ -94,9 +129,9 @@ const SearchPage = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">No products found</p>
+            <p className="text-gray-500 mb-4">{language === 'ar' ? 'لا توجد منتجات' : 'No products found'}</p>
             <Button onClick={() => {setSearchQuery(''); setActiveCategory(null);}}>
-              Clear search
+              {language === 'ar' ? 'مسح البحث' : 'Clear search'}
             </Button>
           </div>
         )}
