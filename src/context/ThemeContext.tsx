@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -20,6 +21,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+      applyThemeStyles(savedTheme);
     } 
     // Otherwise check for system preference
     else {
@@ -28,15 +30,28 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         setTheme('dark');
         document.documentElement.classList.add('dark');
         localStorage.setItem('theme', 'dark');
+        applyThemeStyles('dark');
       }
     }
   }, []);
+
+  const applyThemeStyles = (currentTheme: Theme) => {
+    if (currentTheme === 'dark') {
+      // Apply black color for selected items in dark mode
+      document.documentElement.style.setProperty('--selected-bg', '#000000');
+      document.documentElement.style.setProperty('--selected-text', '#ffffff');
+    } else {
+      document.documentElement.style.setProperty('--selected-bg', '#f0f0f0');
+      document.documentElement.style.setProperty('--selected-text', '#2563eb');
+    }
+  };
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    applyThemeStyles(newTheme);
   };
 
   return (

@@ -32,7 +32,13 @@ const CartPage = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ChevronLeft />
         </Button>
-        <h1 className="font-medium text-center flex-1 mr-8">Shopping Cart ({items.length})</h1>
+        <Button 
+          variant="ghost"
+          className="font-medium text-center flex-1 mr-8"
+          onClick={() => navigate('/cart')}
+        >
+          <h1>Shopping Cart ({items.length})</h1>
+        </Button>
       </div>
       
       {/* Cart Items */}

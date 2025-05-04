@@ -6,7 +6,7 @@ const AboutPage = () => {
   const { language } = useAppSettings();
   
   return (
-    <div className="p-4">
+    <div className="p-4 pb-24 overflow-y-auto">
       <div className="flex flex-col items-center mb-6">
         <img 
           src="/lovable-uploads/f1f11f46-3e99-449c-9040-b277a9805245.png" 
@@ -85,6 +85,8 @@ const AboutPage = () => {
               : '123 Commerce St, Riyadh, Saudi Arabia'}
           </p>
         </div>
+        
+        <div className="h-20"></div>
       </div>
     </div>
   );

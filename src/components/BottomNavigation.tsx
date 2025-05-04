@@ -75,7 +75,13 @@ const NavItem = ({ to, icon, label, active }: NavItemProps) => {
       to={to} 
       className={cn(
         "flex flex-col items-center space-y-1 px-1", 
-        active ? "text-brand-blue" : theme === 'dark' ? "text-gray-400" : "text-gray-500"
+        active 
+          ? theme === 'dark' 
+            ? "text-white bg-gray-800 rounded-md px-2 py-1" 
+            : "text-brand-blue" 
+          : theme === 'dark' 
+            ? "text-gray-400" 
+            : "text-gray-500"
       )}
     >
       {icon}
