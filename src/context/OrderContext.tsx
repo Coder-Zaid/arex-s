@@ -3,6 +3,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Order, CartItem } from '../types';
 import { useToast } from '@/components/ui/use-toast';
 import { useCart } from './CartContext';
+import { useAppSettings } from './AppSettingsContext';
 
 interface OrderContextType {
   orders: Order[];
@@ -24,6 +25,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [orders, setOrders] = useState<Order[]>([]);
   const { toast } = useToast();
   const { clearCart } = useCart();
+  const { currency, language } = useAppSettings();
 
   useEffect(() => {
     // Load orders from localStorage on initialization
@@ -45,6 +47,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id: `order-${Date.now()}`,
       items,
       totalAmount,
+      currency, // Store the current currency with the order
       status: 'pending',
       paymentMethod,
       deliveryAddress: address,
@@ -56,8 +59,10 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     clearCart();
     
     toast({
-      title: "Order placed successfully",
-      description: `Order #${newOrder.id.substr(-6)} has been placed`,
+      title: language === 'ar' ? "تم تقديم الطلب بنجاح" : "Order placed successfully",
+      description: language === 'ar' 
+        ? `الطلب رقم #${newOrder.id.substr(-6).replace(/\d/g, d => String.fromCharCode(1632 + parseInt(d)))} تم تقديمه` 
+        : `Order #${newOrder.id.substr(-6)} has been placed`,
     });
     
     return newOrder;
