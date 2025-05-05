@@ -12,6 +12,7 @@ interface AppSettingsContextType {
   currencySymbol: string;
   isRtl: boolean;
   translations: Record<string, Record<string, string>>;
+  detectUserLocation: () => void;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ export const translations = {
     wishlist: "Wishlist",
     cart: "Cart",
     profile: "Profile",
+    about: "About",
     featuredProducts: "Featured Products",
     newArrivals: "New Arrivals",
     flashDeals: "Flash Deals",
@@ -42,6 +44,9 @@ export const translations = {
     results: "results",
     noProductsFound: "No products found",
     clearSearch: "Clear search",
+    seller: "Seller",
+    orders: "Orders",
+    support: "Support",
   },
   ar: {
     home: "الرئيسية",
@@ -49,6 +54,7 @@ export const translations = {
     wishlist: "المفضلة",
     cart: "السلة",
     profile: "الحساب",
+    about: "عن الشركة",
     featuredProducts: "المنتجات المميزة",
     newArrivals: "وصل حديثا",
     flashDeals: "عروض سريعة",
@@ -62,6 +68,9 @@ export const translations = {
     results: "نتائج",
     noProductsFound: "لا توجد منتجات",
     clearSearch: "مسح البحث",
+    seller: "البائع",
+    orders: "الطلبات",
+    support: "الدعم",
   }
 };
 
@@ -76,6 +85,9 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
     
     if (savedCurrency && (savedCurrency === 'USD' || savedCurrency === 'SAR')) {
       setCurrency(savedCurrency);
+    } else {
+      // Use default currency if not found in localStorage
+      detectUserLocation();
     }
     
     if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ar')) {
@@ -84,6 +96,27 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
       document.documentElement.lang = savedLanguage;
     }
   }, []);
+
+  const detectUserLocation = () => {
+    // This is a simple implementation that could be expanded with actual geolocation
+    try {
+      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      console.log('Detected timezone:', userTimeZone);
+      
+      // Very basic region detection - could be expanded with a proper geolocation service
+      if (userTimeZone.includes('Asia/Riyadh') || 
+          userTimeZone.includes('Asia/Dubai') || 
+          userTimeZone.includes('Asia/Qatar')) {
+        handleSetCurrency('SAR');
+      } else {
+        handleSetCurrency('USD');
+      }
+    } catch (error) {
+      console.error('Error detecting location:', error);
+      // Default to USD if detection fails
+      handleSetCurrency('USD');
+    }
+  };
 
   const handleSetCurrency = (newCurrency: CurrencyType) => {
     setCurrency(newCurrency);
@@ -110,7 +143,8 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
         setLanguage: handleSetLanguage,
         currencySymbol: currencySymbols[currency],
         isRtl,
-        translations
+        translations,
+        detectUserLocation
       }}
     >
       {children}
