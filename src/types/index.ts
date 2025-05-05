@@ -1,10 +1,10 @@
+
 export interface User {
   id: string;
   email: string;
   name: string;
   address?: string;
   phone?: string;
-  photoURL?: string;
   isSeller?: boolean;
   storeDetails?: {
     name: string;
@@ -29,7 +29,6 @@ export interface Product {
   onSale?: boolean;
   sellerId?: string;
   inventory?: number;
-  quantity?: number;
 }
 
 export interface CartItem {
@@ -93,17 +92,4 @@ export interface SupportMessage {
   message: string;
   timestamp: string;
   isStaff: boolean;
-}
-
-export interface Review {
-  id: string;
-  productId: string;
-  userId: string;
-  userName: string;
-  userPhoto?: string;
-  rating: number;
-  comment: string;
-  date: string;
-  helpful?: number;
-  verified?: boolean;
 }

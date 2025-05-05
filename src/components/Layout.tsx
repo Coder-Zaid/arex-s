@@ -1,6 +1,5 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import Header from './Header';
 import BottomNavigation from './BottomNavigation';
 import { Toaster } from '@/components/ui/toaster';
@@ -14,23 +13,6 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const { theme } = useTheme();
   const { isRtl } = useAppSettings();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Global click handler for toast notifications
-    const handleToastClick = (e: MouseEvent) => {
-      const toastElement = (e.target as HTMLElement).closest('.toast');
-      if (toastElement) {
-        // Navigate to cart
-        navigate('/cart');
-      }
-    };
-
-    document.addEventListener('click', handleToastClick);
-    return () => {
-      document.removeEventListener('click', handleToastClick);
-    };
-  }, [navigate]);
 
   return (
     <div 

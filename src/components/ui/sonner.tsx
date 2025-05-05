@@ -12,7 +12,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="toaster group cursor-pointer"
+      className="toaster group"
       toastOptions={{
         classNames: {
           toast:
@@ -23,12 +23,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
-        // Handle toast clicks via the onDismiss callback which is supported by the library
-        onDismiss: (toast) => {
-          // Navigate to cart when toast is clicked or dismissed
-          const route = toast.data?.route || '/cart';
-          navigate(route);
-        }
+        onClick: () => {
+          // Navigate to cart when toast is clicked
+          navigate('/cart');
+        },
       }}
       {...props}
     />
@@ -42,19 +40,10 @@ export const toast = ({ route = '/cart', ...props }: any & { route?: string }) =
   const { toast: originalToast } = require('sonner');
   return originalToast({
     ...props,
-    onDismiss: () => {
-      if (props.onDismiss) {
-        props.onDismiss();
+    onClick: () => {
+      if (route) {
+        window.location.href = route;
       }
     },
-    onAutoClose: () => {
-      if (props.onAutoClose) {
-        props.onAutoClose();
-      }
-    },
-    // Use custom properties supported by sonner
-    style: { cursor: 'pointer' },
-    // Store the route in data attribute to be used by global click handler
-    data: { route }
   });
 };

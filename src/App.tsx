@@ -1,128 +1,75 @@
-
 import React from 'react';
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
-import Index from "@/pages/Index";
-import NotFound from "@/pages/NotFound";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { AppSettingsProvider } from "@/context/AppSettingsContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
+import { OrderProvider } from "@/context/OrderContext";
+import Layout from "@/components/Layout";
+
+// Pages
 import HomePage from "@/pages/HomePage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import CartPage from "@/pages/CartPage";
-import CheckoutPage from "@/pages/CheckoutPage";
-import OrderConfirmationPage from "@/pages/OrderConfirmationPage";
-import OrdersPage from "@/pages/OrdersPage";
-import OrderDetailsPage from "@/pages/OrderDetailsPage";
 import WishlistPage from "@/pages/WishlistPage";
-import SearchPage from "@/pages/SearchPage";
-import ProfilePage from "@/pages/ProfilePage";
-import AboutPage from "@/pages/AboutPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
-import Layout from "@/components/Layout";
-import { ThemeProvider } from '@/context/ThemeContext';
-import { AppSettingsProvider } from '@/context/AppSettingsContext';
-import { AuthProvider } from '@/context/AuthContext';
-import { CartProvider } from '@/context/CartContext';
-import { WishlistProvider } from '@/context/WishlistContext';
-import { OrderProvider } from '@/context/OrderContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import SellerDashboard from '@/pages/SellerDashboard';
-import BecomeSellerPage from '@/pages/BecomeSellerPage';
-import SellerProductManagement from '@/pages/SellerProductManagement';
+import ProfilePage from "@/pages/ProfilePage";
+import CheckoutPage from "@/pages/CheckoutPage";
+import OrderConfirmationPage from "@/pages/OrderConfirmationPage";
+import OrderDetailsPage from "@/pages/OrderDetailsPage";
+import OrdersPage from "@/pages/OrdersPage";
+import SearchPage from "@/pages/SearchPage";
+import AboutPage from "@/pages/AboutPage";
+import SellerDashboard from "@/pages/SellerDashboard";
+import NotFound from "@/pages/NotFound";
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <ThemeProvider>
+const App = () => (
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
       <AppSettingsProvider>
-        <AuthProvider>
-          <WishlistProvider>
+        <TooltipProvider>
+          <AuthProvider>
             <CartProvider>
-              <OrderProvider>
-                <QueryClientProvider client={queryClient}>
-                  <RouterProvider router={router} />
-                </QueryClientProvider>
-              </OrderProvider>
+              <WishlistProvider>
+                <OrderProvider>
+                  <BrowserRouter>
+                    <Layout>
+                      <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/product/:id" element={<ProductDetailPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/wishlist" element={<WishlistPage />} />
+                        <Route path="/search" element={<SearchPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                        <Route path="/order/:id" element={<OrderDetailsPage />} />
+                        <Route path="/orders" element={<OrdersPage />} />
+                        <Route path="/seller-dashboard" element={<SellerDashboard />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Layout>
+                    <Toaster />
+                  </BrowserRouter>
+                </OrderProvider>
+              </WishlistProvider>
             </CartProvider>
-          </WishlistProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </TooltipProvider>
       </AppSettingsProvider>
-    </ThemeProvider>
-  );
-}
-
-const router = createBrowserRouter([
-  {
-    path: "",
-    element: <Index />,
-    errorElement: <NotFound />
-  },
-  {
-    path: "home",
-    element: <Layout><HomePage /></Layout>
-  },
-  {
-    path: "product/:id",
-    element: <Layout><ProductDetailPage /></Layout>
-  },
-  {
-    path: "cart",
-    element: <Layout><CartPage /></Layout>
-  },
-  {
-    path: "checkout",
-    element: <Layout><CheckoutPage /></Layout>
-  },
-  {
-    path: "order-confirmation/:id",
-    element: <Layout><OrderConfirmationPage /></Layout>
-  },
-  {
-    path: "orders",
-    element: <Layout><OrdersPage /></Layout>
-  },
-  {
-    path: "order/:id",
-    element: <Layout><OrderDetailsPage /></Layout>
-  },
-  {
-    path: "wishlist",
-    element: <Layout><WishlistPage /></Layout>
-  },
-  {
-    path: "search",
-    element: <Layout><SearchPage /></Layout>
-  },
-  {
-    path: "profile",
-    element: <Layout><ProfilePage /></Layout>
-  },
-  {
-    path: "about",
-    element: <Layout><AboutPage /></Layout>
-  },
-  {
-    path: "login",
-    element: <Layout><LoginPage /></Layout>
-  },
-  {
-    path: "register",
-    element: <Layout><RegisterPage /></Layout>
-  },
-  {
-    path: "seller/dashboard",
-    element: <Layout><SellerDashboard /></Layout>
-  },
-  {
-    path: "become-seller",
-    element: <Layout><BecomeSellerPage /></Layout>
-  },
-  {
-    path: "seller/products",
-    element: <Layout><SellerProductManagement /></Layout>
-  },
-]);
+    </QueryClientProvider>
+  </ThemeProvider>
+);
 
 export default App;

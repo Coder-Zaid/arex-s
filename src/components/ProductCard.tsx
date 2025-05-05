@@ -70,34 +70,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </div>
     );
   };
-
-  // Render stock status
-  const renderStockStatus = () => {
-    if (!product.inStock) {
-      return (
-        <div className="text-xs text-red-500 font-medium mt-1">
-          {language === 'ar' ? 'نفذ من المخزون' : 'Out of Stock'}
-        </div>
-      );
-    }
-    
-    if (product.inventory !== undefined) {
-      if (product.inventory < 10) {
-        return (
-          <div className="text-xs text-amber-500 font-medium mt-1">
-            {language === 'ar' ? `مخزون منخفض (${product.inventory})` : `Low Stock (${product.inventory})`}
-          </div>
-        );
-      }
-      return (
-        <div className="text-xs text-green-600 mt-1">
-          {language === 'ar' ? 'متوفر' : 'In Stock'}
-        </div>
-      );
-    }
-    
-    return null;
-  };
   
   // Apply currency conversion
   const convertedPrice = convertPrice(product.price);
@@ -158,8 +130,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
               )}
             </div>
             
-            {renderStockStatus()}
-            
             <div className="flex justify-between items-center mt-2">
               {/* Stars Rating instead of brand */}
               {renderRatingStars(product.rating)}
@@ -169,7 +139,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 variant="ghost"
                 className="p-1 h-8 flex items-center gap-1 text-xs"
                 onClick={handleAddToCart}
-                disabled={!product.inStock}
               >
                 <ShoppingCart size={14} />
                 {language === 'ar' ? 'أضف' : 'Add'}

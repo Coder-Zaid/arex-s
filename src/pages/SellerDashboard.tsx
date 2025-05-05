@@ -6,12 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { Package, ShoppingCart, Users, TrendingUp, CreditCard, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const SellerDashboard = () => {
   const { theme } = useTheme();
   const { language, translations, currency, currencySymbol } = useAppSettings();
-  const navigate = useNavigate();
   const t = translations[language];
   
   return (
@@ -126,8 +124,8 @@ const SellerDashboard = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>{language === 'ar' ? 'منتجاتك' : 'Your Products'}</CardTitle>
-                  <Button size="sm" onClick={() => navigate('/seller/products')}>
-                    {language === 'ar' ? 'إدارة المنتجات' : 'Manage Products'}
+                  <Button size="sm">
+                    {language === 'ar' ? 'إضافة منتج' : 'Add Product'}
                   </Button>
                 </div>
               </CardHeader>
@@ -138,17 +136,7 @@ const SellerDashboard = () => {
                       <div className="h-12 w-12 bg-gray-200 rounded-md mr-3"></div>
                       <div className="flex-1">
                         <p className="font-medium">Product Name {i}</p>
-                        <p className="text-sm opacity-70">
-                          {i === 2 ? (
-                            <span className="text-amber-500">
-                              {language === 'ar' ? 'مخزون منخفض: 8' : 'Low stock: 8'}
-                            </span>
-                          ) : (
-                            <span className="text-green-600">
-                              {language === 'ar' ? 'المخزون' : 'In stock'}: {i === 1 ? 24 : i === 3 ? 15 : 32}
-                            </span>
-                          )}
-                        </p>
+                        <p className="text-sm opacity-70">{language === 'ar' ? 'المخزون' : 'In stock'}: 24</p>
                       </div>
                       <div className="text-right">
                         <p className="font-medium">{currencySymbol}39.99</p>
@@ -157,12 +145,8 @@ const SellerDashboard = () => {
                     </div>
                   ))}
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full mt-4" 
-                  onClick={() => navigate('/seller/products/add')}
-                >
-                  {language === 'ar' ? 'إضافة منتج جديد' : 'Add New Product'}
+                <Button variant="outline" className="w-full mt-4">
+                  {language === 'ar' ? 'إدارة المنتجات' : 'Manage Products'}
                 </Button>
               </CardContent>
             </Card>
