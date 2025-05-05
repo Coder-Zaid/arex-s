@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,13 +7,11 @@ import { useCart } from '@/context/CartContext';
 import { ChevronLeft, Trash2, ShoppingBag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
 
 const CartPage = () => {
   const navigate = useNavigate();
   const { items, removeFromCart, updateQuantity, getTotalPrice } = useCart();
-  const { theme } = useTheme();
   const { currencySymbol, convertPrice } = useAppSettings();
   
   if (items.length === 0) {
@@ -32,17 +30,11 @@ const CartPage = () => {
   return (
     <div className="pb-36">
       {/* Header */}
-      <div className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-black' : 'bg-white'} shadow-sm p-3 flex items-center`}>
+      <div className="sticky top-0 z-10 bg-background shadow-sm p-3 flex items-center">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ChevronLeft />
         </Button>
-        <Button 
-          variant="ghost"
-          className="font-medium text-center flex-1 mr-8"
-          onClick={() => navigate('/cart')}
-        >
-          <h1>Shopping Cart ({items.length})</h1>
-        </Button>
+        <h1 className="font-medium text-center flex-1 mr-8">Shopping Cart ({items.length})</h1>
       </div>
       
       {/* Cart Items */}
@@ -52,7 +44,7 @@ const CartPage = () => {
           const convertedPrice = convertPrice(item.product.price);
           
           return (
-            <Card key={item.product.id} className={`overflow-hidden ${theme === 'dark' ? 'bg-gray-900' : ''}`}>
+            <Card key={item.product.id} className="overflow-hidden">
               <CardContent className="p-3">
                 <div className="flex gap-3">
                   <img 
@@ -75,9 +67,9 @@ const CartPage = () => {
                     <p className="text-sm text-gray-500 mt-1">{item.product.brand}</p>
                     
                     <div className="flex justify-between items-center mt-2">
-                      <div className={`flex items-center border rounded-md ${theme === 'dark' ? 'border-gray-700' : ''}`}>
+                      <div className="flex items-center border rounded-md border-border">
                         <button 
-                          className={`px-2 py-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}
+                          className="px-2 py-1 text-foreground"
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                           disabled={item.quantity <= 1}
                         >
@@ -85,7 +77,7 @@ const CartPage = () => {
                         </button>
                         <span className="px-2">{item.quantity}</span>
                         <button 
-                          className={`px-2 py-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}
+                          className="px-2 py-1 text-foreground"
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                         >
                           +
@@ -138,7 +130,7 @@ const CartPage = () => {
       </div>
       
       {/* Checkout Button */}
-      <div className={`fixed bottom-16 left-0 right-0 p-4 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-100'} border-t`}>
+      <div className="fixed bottom-16 left-0 right-0 p-4 bg-background border-t border-border">
         <Button 
           className="w-full bg-brand-blue hover:bg-brand-blue/90"
           onClick={() => navigate('/checkout')}

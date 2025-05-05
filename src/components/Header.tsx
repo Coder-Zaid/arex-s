@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { User, ShoppingCart, Heart, Search } from 'lucide-react';
+import { ShoppingCart, Heart, Search, Package } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ThemeToggle from './ThemeToggle';
 import SettingsMenu from './SettingsMenu';
@@ -28,9 +28,9 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <img 
-              src="/lovable-uploads/f1f11f46-3e99-449c-9040-b277a9805245.png" 
-              alt="Arex Logo" 
-              className="h-10 w-10 mr-2" 
+              src="/lovable-uploads/73e6fac1-59a6-46dd-8d53-a8eed9d28374.png" 
+              alt="Riyal Logo" 
+              className="h-10 w-10 mr-2 dark:invert" 
             />
             <span className="font-bold text-xl text-brand-blue hidden sm:inline-block">Arex</span>
             <span className="font-bold text-xl text-brand-blue inline-block sm:hidden">Arex</span>
@@ -71,8 +71,8 @@ const Header = () => {
               )}
             </div>
             
-            <Link to={isAuthenticated ? "/profile" : "/login"}>
-              <User size={20} />
+            <Link to={isAuthenticated ? "/orders" : "/login"}>
+              <Package size={20} />
             </Link>
           </div>
         </div>
