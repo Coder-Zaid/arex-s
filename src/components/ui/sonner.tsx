@@ -22,13 +22,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-        },
-        // Add the click handler to the toast options where it's supported
-        onClick: (toast) => {
-          // Navigate to cart when toast is clicked
-          const route = toast.data?.route || '/cart';
-          navigate(route);
         }
+      }}
+      className="cursor-pointer"
+      // We need to move the click handler to the component level
+      onToastClick={(toast) => {
+        // Navigate to cart when toast is clicked
+        const route = toast.data?.route || '/cart';
+        navigate(route);
       }}
       {...props}
     />
