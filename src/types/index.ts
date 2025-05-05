@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -30,6 +29,7 @@ export interface Product {
   onSale?: boolean;
   sellerId?: string;
   inventory?: number;
+  quantity?: number;
 }
 
 export interface CartItem {

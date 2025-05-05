@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ import {
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { products } from '@/data/products';
-import { Product, Review, User } from '@/types';
+import { Product, Review } from '@/types';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -99,6 +98,7 @@ const ProductDetailPage = () => {
   }
   
   const handleAddToCart = () => {
+    // Create a new object that combines the product with the quantity
     addToCart({...product, quantity});
   };
   

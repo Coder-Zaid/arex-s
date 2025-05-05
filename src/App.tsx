@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   createBrowserRouter,
@@ -25,7 +26,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { OrderProvider } from '@/context/OrderContext';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SellerDashboard from '@/pages/SellerDashboard';
 import BecomeSellerPage from '@/pages/BecomeSellerPage';
 import SellerProductManagement from '@/pages/SellerProductManagement';

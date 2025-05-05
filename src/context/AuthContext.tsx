@@ -20,6 +20,7 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  updateUserProfile: (userData: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -88,7 +89,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: firebaseUser.uid,
           email: firebaseUser.email || '',
           name: firebaseUser.displayName || '',
-          phone: firebaseUser.phoneNumber || undefined
+          phone: firebaseUser.phoneNumber || undefined,
+          photoURL: firebaseUser.photoURL || undefined
         };
         
         setUser(userData);
@@ -180,6 +182,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserProfile = async (userData: Partial<User>) => {
+    if (!user) return;
+    
+    try {
+      // Update the current user data
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      
+      // Store in localStorage
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update your profile",
+        variant: "destructive"
+      });
+      console.error("Profile update error:", error);
+    }
+  };
+
   const register = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
@@ -192,7 +219,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: firebaseUser.uid,
           email: firebaseUser.email || '',
           name: name,
-          phone: firebaseUser.phoneNumber || undefined
+          phone: firebaseUser.phoneNumber || undefined,
+          photoURL: firebaseUser.photoURL || undefined
         };
         
         setUser(userData);
@@ -239,7 +267,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithApple,
         register, 
         logout,
-        isAuthenticated: !!user 
+        isAuthenticated: !!user,
+        updateUserProfile
       }}
     >
       {children}
