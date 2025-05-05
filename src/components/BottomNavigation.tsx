@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, ShoppingCart, User, Info } from 'lucide-react';
+import { Home, Search, Heart, ShoppingCart, Package, Info, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
@@ -44,16 +44,16 @@ const BottomNavigation = () => {
           active={isActive('/cart')}
         />
         <NavItem 
-          to="/profile"
-          icon={<User size={20} />}
-          label={t.profile}
-          active={isActive('/profile')}
+          to="/orders"
+          icon={<Package size={20} />}
+          label={t.orders}
+          active={isActive('/orders')}
         />
         <NavItem 
-          to="/about"
-          icon={<Info size={20} />}
-          label={t.about}
-          active={isActive('/about')}
+          to="/seller"
+          icon={<Store size={20} />}
+          label={t.seller}
+          active={isActive('/seller')}
         />
       </div>
     </div>

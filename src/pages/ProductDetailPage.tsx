@@ -7,8 +7,58 @@ import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { products } from '@/data/products';
-import { Heart, ShoppingCart, Share2, ChevronLeft } from 'lucide-react';
+import { 
+  Heart, 
+  ShoppingCart, 
+  Share2, 
+  ChevronLeft, 
+  Star,
+  MessageCircle,
+  SendHorizontal 
+} from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/context/AuthContext';
+import { useAppSettings } from '@/context/AppSettingsContext';
+
+// Mock reviews data
+const mockReviews = [
+  {
+    id: '1',
+    userId: 'user1',
+    userName: 'John Doe',
+    rating: 5,
+    text: 'Great product! Exactly what I was looking for.',
+    date: '2023-04-15T10:30:00Z'
+  },
+  {
+    id: '2',
+    userId: 'user2',
+    userName: 'Sarah Smith',
+    rating: 4,
+    text: 'Good quality, but shipping took longer than expected.',
+    date: '2023-04-10T08:15:00Z'
+  },
+  {
+    id: '3',
+    userId: 'user3',
+    userName: 'Michael Brown',
+    rating: 5,
+    text: 'Perfect! Would definitely recommend to others.',
+    date: '2023-04-05T14:45:00Z'
+  }
+];
+
+// Generate additional product images
+const generateExtraImages = (product: any) => {
+  return [
+    product.image,
+    'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b',
+    'https://images.unsplash.com/photo-1518770660439-4636190af475',
+    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
+  ];
+};
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,8 +66,16 @@ const ProductDetailPage = () => {
   const { toast } = useToast();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { isAuthenticated } = useAuth();
+  const { currencySymbol } = useAppSettings();
   const [quantity, setQuantity] = useState(1);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('description');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewText, setReviewText] = useState('');
+  const [rating, setRating] = useState(5);
+  const [reviews, setReviews] = useState(mockReviews);
   
   const product = products.find(p => p.id === id);
   
@@ -30,6 +88,8 @@ const ProductDetailPage = () => {
       </div>
     );
   }
+
+  const productImages = generateExtraImages(product);
   
   const handleWishlistToggle = () => {
     if (isInWishlist(product.id)) {
@@ -67,6 +127,48 @@ const ProductDetailPage = () => {
       });
     }
   };
+
+  const handleImageHover = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
+  const handleSubmitReview = () => {
+    if (!reviewText) {
+      toast({
+        title: "Error",
+        description: "Please write your review first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Create a new review
+    const newReview = {
+      id: `review-${Date.now()}`,
+      userId: 'current-user',
+      userName: 'You',
+      rating: rating,
+      text: reviewText,
+      date: new Date().toISOString()
+    };
+    
+    // Add the new review to the reviews list
+    setReviews([newReview, ...reviews]);
+    setReviewText('');
+    setRating(5);
+    setShowReviewForm(false);
+    
+    toast({
+      title: "Review submitted",
+      description: "Thank you for your feedback!"
+    });
+  };
+  
+  // Function to format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
   
   return (
     <div className="pb-24">
@@ -78,18 +180,39 @@ const ProductDetailPage = () => {
         <h1 className="font-medium text-center flex-1 mr-8">Product Details</h1>
       </div>
       
-      {/* Product Image */}
+      {/* Product Image Gallery */}
       <div className="relative">
+        {/* Main image */}
         <img 
-          src={product.image} 
+          src={productImages[currentImageIndex]} 
           alt={product.name} 
-          className="w-full h-64 object-cover"
+          className="w-full h-64 object-cover transition-opacity duration-300"
         />
+        
+        {/* Image thumbnails */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {productImages.map((img, index) => (
+            <div 
+              key={index}
+              className={`w-10 h-10 rounded-md overflow-hidden border-2 ${
+                currentImageIndex === index ? 'border-brand-blue' : 'border-white/50'
+              } cursor-pointer transition-all duration-200 hover:scale-110`}
+              onMouseEnter={() => handleImageHover(index)}
+              onClick={() => setCurrentImageIndex(index)}
+            >
+              <img 
+                src={img} 
+                alt={`Product view ${index + 1}`} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
         
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-1">
           {product.onSale && (
-            <Badge className="bg-brand-orange">Sale</Badge>
+            <Badge className="bg-brand-orange animate-pulse">Sale</Badge>
           )}
           {product.isNew && (
             <Badge className="bg-green-500">New</Badge>
@@ -107,11 +230,25 @@ const ProductDetailPage = () => {
           <div className="flex flex-col items-end">
             <div className="flex items-baseline gap-2">
               <span className="font-bold text-xl text-brand-blue">
-                ${product.price.toFixed(2)}
+                {currencySymbol === 'ر.س' ? (
+                  <span className="flex items-center">
+                    <span>{product.price.toFixed(2)}</span>
+                    <img src="/images/sar-symbol.png" alt="SAR" className="h-5 ml-1" />
+                  </span>
+                ) : (
+                  <span>{currencySymbol}{product.price.toFixed(2)}</span>
+                )}
               </span>
               {product.oldPrice && (
                 <span className="text-gray-400 line-through">
-                  ${product.oldPrice.toFixed(2)}
+                  {currencySymbol === 'ر.س' ? (
+                    <span className="flex items-center">
+                      <span>{product.oldPrice.toFixed(2)}</span>
+                      <img src="/images/sar-symbol.png" alt="SAR" className="h-4 ml-1" />
+                    </span>
+                  ) : (
+                    <span>{currencySymbol}{product.oldPrice.toFixed(2)}</span>
+                  )}
                 </span>
               )}
             </div>
@@ -136,10 +273,139 @@ const ProductDetailPage = () => {
           </div>
         </div>
         
-        {/* Description */}
-        <div className="mt-4">
-          <h2 className="font-medium mb-2">Description</h2>
-          <p className="text-sm text-gray-600">{product.description}</p>
+        {/* Tabs for Description and Reviews */}
+        <div className="mt-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-3 mb-2">
+              <TabsTrigger value="description" className="text-sm">Description</TabsTrigger>
+              <TabsTrigger value="reviews" className="text-sm">Reviews ({reviews.length})</TabsTrigger>
+              <TabsTrigger value="specs" className="text-sm">Specs</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="description" className="animate-fade-in">
+              <p className="text-sm text-gray-600">{product.description}</p>
+            </TabsContent>
+            
+            <TabsContent value="reviews" className="animate-fade-in">
+              <div className="mb-4">
+                {!showReviewForm ? (
+                  <Button 
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        setShowReviewForm(true);
+                      } else {
+                        toast({
+                          title: "Sign in required",
+                          description: "Please sign in to write a review",
+                        });
+                        navigate('/login');
+                      }
+                    }} 
+                    size="sm"
+                    className="w-full mb-4 hover:scale-[1.02] transition-all duration-200"
+                  >
+                    Write a Review
+                  </Button>
+                ) : (
+                  <div className="bg-gray-50 p-3 rounded-lg mb-4 animate-scale-in">
+                    <h3 className="font-medium text-sm mb-2">Your Review</h3>
+                    <div className="flex items-center mb-2">
+                      <span className="text-sm mr-2">Rating:</span>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRating(star)}
+                            className="focus:outline-none"
+                          >
+                            <Star
+                              size={20}
+                              className={`${
+                                star <= rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
+                              } cursor-pointer hover:scale-110 transition-all duration-100`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <Textarea
+                      placeholder="Share your experience with this product..."
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                      rows={3}
+                      className="mb-2"
+                    />
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={handleSubmitReview}
+                        className="flex gap-1 items-center"
+                      >
+                        <SendHorizontal size={14} />
+                        Submit
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => setShowReviewForm(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Reviews list */}
+                <div className="space-y-4">
+                  {reviews.length === 0 ? (
+                    <div className="text-center py-6 text-gray-500">
+                      <MessageCircle className="mx-auto mb-2 h-10 w-10 opacity-20" />
+                      <p>No reviews yet.</p>
+                    </div>
+                  ) : (
+                    reviews.map((review) => (
+                      <div key={review.id} className="border-b pb-3 last:border-b-0">
+                        <div className="flex justify-between mb-1">
+                          <span className="font-medium">{review.userName}</span>
+                          <span className="text-xs text-gray-500">{formatDate(review.date)}</span>
+                        </div>
+                        <div className="flex mb-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={14}
+                              className={`${i < review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-sm text-gray-600">{review.text}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="specs" className="animate-fade-in">
+              <Card className="p-3">
+                <div className="text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Brand</span>
+                    <span>{product.brand}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Category</span>
+                    <span>{product.category}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Availability</span>
+                    <span>{product.inStock ? 'In Stock' : 'Out of Stock'}</span>
+                  </div>
+                </div>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
         
         {/* Quantity Selector */}
@@ -150,6 +416,7 @@ const ProductDetailPage = () => {
               variant="outline" 
               size="icon"
               onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+              className="hover:scale-105 active:scale-95 transition-transform duration-200"
             >
               -
             </Button>
@@ -158,6 +425,7 @@ const ProductDetailPage = () => {
               variant="outline" 
               size="icon"
               onClick={() => setQuantity(quantity + 1)}
+              className="hover:scale-105 active:scale-95 transition-transform duration-200"
             >
               +
             </Button>
@@ -171,19 +439,19 @@ const ProductDetailPage = () => {
               variant="outline" 
               className={`flex flex-col items-center py-2 px-0 h-auto ${
                 isInWishlist(product.id) ? 'text-red-500' : ''
-              }`}
+              } hover:scale-105 active:scale-95 transition-transform duration-200`}
               onClick={handleWishlistToggle}
             >
               <Heart 
                 size={18} 
-                className="mb-1"
+                className="mb-1 transition-transform duration-300 hover:scale-110"
                 fill={isInWishlist(product.id) ? 'currentColor' : 'none'} 
               />
               <span className="text-xs">Wishlist</span>
             </Button>
             <Button 
               variant="outline" 
-              className="flex flex-col items-center py-2 px-0 h-auto"
+              className="flex flex-col items-center py-2 px-0 h-auto hover:scale-105 active:scale-95 transition-transform duration-200"
               onClick={handleShare}
             >
               <Share2 size={18} className="mb-1" />
@@ -191,7 +459,7 @@ const ProductDetailPage = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="flex flex-col items-center py-2 px-0 h-auto"
+              className="flex flex-col items-center py-2 px-0 h-auto hover:scale-105 active:scale-95 transition-transform duration-200"
               onClick={handleBookNow}
             >
               <span className="text-xs">Book Now</span>
@@ -199,32 +467,13 @@ const ProductDetailPage = () => {
           </div>
           
           <Button 
-            className="bg-brand-blue hover:bg-brand-blue/90 flex gap-2 items-center"
+            className="bg-brand-blue hover:bg-brand-blue/90 flex gap-2 items-center hover:scale-[1.01] active:scale-[0.99] transition-transform duration-200"
             onClick={handleAddToCart}
           >
             <ShoppingCart size={16} />
             Add to Cart
           </Button>
         </div>
-        
-        {/* Specs */}
-        <Card className="mt-6 p-3">
-          <h2 className="font-medium mb-2">Specifications</h2>
-          <div className="text-sm space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Brand</span>
-              <span>{product.brand}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Category</span>
-              <span>{product.category}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Availability</span>
-              <span>{product.inStock ? 'In Stock' : 'Out of Stock'}</span>
-            </div>
-          </div>
-        </Card>
       </div>
     </div>
   );

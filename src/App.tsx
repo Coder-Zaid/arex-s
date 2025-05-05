@@ -28,6 +28,7 @@ import OrdersPage from "@/pages/OrdersPage";
 import SearchPage from "@/pages/SearchPage";
 import AboutPage from "@/pages/AboutPage";
 import SellerDashboard from "@/pages/SellerDashboard";
+import SellerPage from "@/pages/SellerPage";
 import NotFound from "@/pages/NotFound";
 
 // Create a new QueryClient instance
@@ -57,6 +58,7 @@ const App = () => (
                         <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
                         <Route path="/order/:id" element={<OrderDetailsPage />} />
                         <Route path="/orders" element={<OrdersPage />} />
+                        <Route path="/seller" element={<SellerPage />} />
                         <Route path="/seller-dashboard" element={<SellerDashboard />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="*" element={<NotFound />} />

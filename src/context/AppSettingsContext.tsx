@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type CurrencyType = 'USD' | 'SAR';
@@ -29,7 +28,8 @@ export const translations = {
     search: "Search",
     wishlist: "Wishlist",
     cart: "Cart",
-    profile: "Profile",
+    orders: "Orders",
+    seller: "Seller",
     about: "About",
     featuredProducts: "Featured Products",
     newArrivals: "New Arrivals",
@@ -47,13 +47,21 @@ export const translations = {
     seller: "Seller",
     orders: "Orders",
     support: "Support",
+    noOrders: "No orders have been placed yet",
+    feedback: "Feedback",
+    reviews: "Reviews",
+    writeReview: "Write a Review",
+    submitReview: "Submit Review",
+    yourReview: "Your Review",
+    rating: "Rating",
   },
   ar: {
     home: "الرئيسية",
     search: "بحث",
     wishlist: "المفضلة",
     cart: "السلة",
-    profile: "الحساب",
+    orders: "الطلبات",
+    seller: "البائع",
     about: "عن الشركة",
     featuredProducts: "المنتجات المميزة",
     newArrivals: "وصل حديثا",
@@ -71,6 +79,13 @@ export const translations = {
     seller: "البائع",
     orders: "الطلبات",
     support: "الدعم",
+    noOrders: "لم يتم وضع أي طلبات بعد",
+    feedback: "ردود الفعل",
+    reviews: "المراجعات",
+    writeReview: "اكتب مراجعة",
+    submitReview: "إرسال المراجعة",
+    yourReview: "مراجعتك",
+    rating: "تقييم",
   }
 };
 
