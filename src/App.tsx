@@ -24,16 +24,18 @@ import ProfilePage from "@/pages/ProfilePage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import OrderConfirmationPage from "@/pages/OrderConfirmationPage";
 import OrderDetailsPage from "@/pages/OrderDetailsPage";
+import OrdersPage from "@/pages/OrdersPage";
 import SearchPage from "@/pages/SearchPage";
 import AboutPage from "@/pages/AboutPage";
+import SellerDashboard from "@/pages/SellerDashboard";
 import NotFound from "@/pages/NotFound";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
       <AppSettingsProvider>
         <TooltipProvider>
           <AuthProvider>
@@ -54,6 +56,8 @@ const App = () => (
                         <Route path="/checkout" element={<CheckoutPage />} />
                         <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
                         <Route path="/order/:id" element={<OrderDetailsPage />} />
+                        <Route path="/orders" element={<OrdersPage />} />
+                        <Route path="/seller-dashboard" element={<SellerDashboard />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
@@ -67,8 +71,8 @@ const App = () => (
           </AuthProvider>
         </TooltipProvider>
       </AppSettingsProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

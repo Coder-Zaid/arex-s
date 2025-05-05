@@ -38,7 +38,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const applyThemeStyles = (currentTheme: Theme) => {
     if (currentTheme === 'dark') {
       // Apply black color for selected items in dark mode
-      document.documentElement.style.setProperty('--selected-bg', '#000000');
+      document.documentElement.style.setProperty('--selected-bg', '#191919');
       document.documentElement.style.setProperty('--selected-text', '#ffffff');
     } else {
       document.documentElement.style.setProperty('--selected-bg', '#f0f0f0');

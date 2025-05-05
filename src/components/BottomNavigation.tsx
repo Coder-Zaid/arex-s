@@ -52,7 +52,7 @@ const BottomNavigation = () => {
         <NavItem 
           to="/about"
           icon={<Info size={20} />}
-          label={language === 'ar' ? 'عن الشركة' : 'About'}
+          label={t.about}
           active={isActive('/about')}
         />
       </div>
@@ -77,7 +77,7 @@ const NavItem = ({ to, icon, label, active }: NavItemProps) => {
         "flex flex-col items-center space-y-1 px-1", 
         active 
           ? theme === 'dark' 
-            ? "text-white bg-gray-800 rounded-md px-2 py-1" 
+            ? "text-white bg-[#191919] rounded-md px-2 py-1" 
             : "text-brand-blue" 
           : theme === 'dark' 
             ? "text-gray-400" 
