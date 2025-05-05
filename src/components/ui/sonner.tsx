@@ -23,9 +23,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
-        // Custom properties need to be spread separately, not as part of the toastOptions
       }}
-      onClick={() => {
+      onToastClick={(toast) => {
         // Navigate to cart when toast is clicked
         navigate('/cart');
       }}

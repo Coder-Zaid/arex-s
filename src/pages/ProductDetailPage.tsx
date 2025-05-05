@@ -1,101 +1,105 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { 
+  Card, 
+  CardContent,
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from '@/components/ui/badge';
+import { 
+  Heart, 
+  ShoppingCart, 
+  Truck,
+  Sparkles,
+  Star,
+  Check,
+  AlarmClock,
+  Package
+} from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { products } from '@/data/products';
-import { Heart, ShoppingCart, Share2, ChevronLeft, ChevronRight, Star, Send } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { Product, Review, User } from '@/types';
 import { useAppSettings } from '@/context/AppSettingsContext';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/AuthContext';
-
-// Sample reviews data
-const sampleReviews = [
-  {
-    id: '1',
-    userId: 'user1',
-    userName: 'John Doe',
-    rating: 5,
-    comment: 'Excellent product! Really exceeded my expectations.',
-    date: '2023-05-10',
-    userImage: 'https://randomuser.me/api/portraits/men/32.jpg'
-  },
-  {
-    id: '2',
-    userId: 'user2',
-    userName: 'Sarah Smith',
-    rating: 4,
-    comment: 'Great quality for the price. Would recommend.',
-    date: '2023-04-22',
-    userImage: 'https://randomuser.me/api/portraits/women/44.jpg'
-  },
-  {
-    id: '3',
-    userId: 'user3',
-    userName: 'Michael Brown',
-    rating: 3,
-    comment: 'Good product, but shipping was a bit slow.',
-    date: '2023-03-15',
-    userImage: 'https://randomuser.me/api/portraits/men/62.jpg'
-  }
-];
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const { user, isAuthenticated } = useAuth();
-  const [quantity, setQuantity] = useState(1);
-  const [bookingOpen, setBookingOpen] = useState(false);
-  const { currencySymbol, convertPrice } = useAppSettings();
-  const [activeTab, setActiveTab] = useState('description');
-  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
-  const [reviews, setReviews] = useState(sampleReviews);
+  const { user } = useAuth();
+  const { language, currencySymbol, convertPrice } = useAppSettings();
   
-  // Image gallery setup
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
+  // Find the product based on the ID from the URL
   const product = products.find(p => p.id === id);
+  
+  const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState(0);
+  
+  // Mock additional product images
+  const productImages = [
+    product?.image,
+    '/placeholder.svg',
+    '/placeholder.svg',
+    '/placeholder.svg'
+  ];
+  
+  // Mock reviews
+  const [reviews, setReviews] = useState<Review[]>([
+    {
+      id: '1',
+      productId: id || '1',
+      userId: 'user1',
+      userName: 'John D.',
+      rating: 5,
+      comment: 'Excellent product! Exactly as described and arrived quickly.',
+      date: '2023-05-15',
+      verified: true
+    },
+    {
+      id: '2',
+      productId: id || '1',
+      userId: 'user2',
+      userName: 'Sarah M.',
+      rating: 4,
+      comment: 'Good quality for the price. Would recommend.',
+      date: '2023-05-10',
+      verified: true
+    }
+  ]);
+  
+  const [newReview, setNewReview] = useState({
+    rating: 5,
+    comment: ''
+  });
   
   if (!product) {
     return (
-      <div className="p-4 flex flex-col items-center justify-center h-[60vh]">
-        <h2 className="text-xl font-bold mb-2">Product not found</h2>
-        <p className="text-gray-500 mb-4">The product you're looking for doesn't exist or has been removed.</p>
-        <Button onClick={() => navigate('/')}>Back to Home</Button>
+      <div className="p-4">
+        <p className="text-center">Product not found</p>
       </div>
     );
   }
   
-  // Setup product images - main image + additional mock images
-  const productImages = [
-    product.image,
-    // Add alternative images (mocked for demo)
-    'https://picsum.photos/id/26/400/300',
-    'https://picsum.photos/id/96/400/300'
-  ];
-  
-  const handleNextImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
-  };
-  
-  const handlePrevImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
-  };
-
-  const handleImageThumbnailClick = (index: number) => {
-    setCurrentImageIndex(index);
+  const handleAddToCart = () => {
+    addToCart({...product, quantity});
   };
   
   const handleWishlistToggle = () => {
@@ -106,379 +110,373 @@ const ProductDetailPage = () => {
     }
   };
   
-  const handleAddToCart = () => {
-    addToCart(product, quantity);
-  };
-
-  const handleBookNow = () => {
-    setBookingOpen(true);
-    toast({
-      title: "Product Booked",
-      description: `You've successfully booked ${product.name}. We'll hold it for you!`,
-      route: '/cart'
-    });
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (value > 0) {
+      setQuantity(value);
+    }
   };
   
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: product.name,
-        text: product.description,
-        url: window.location.href,
-      });
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copied",
-        description: "Product link copied to clipboard",
-        route: '/cart'
-      });
-    }
-  };
-
-  const handleRatingChange = (rating: number) => {
-    setNewReview(prev => ({ ...prev, rating }));
-  };
-
-  const handleReviewSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newReview.comment.trim()) {
-      toast({
-        title: "Error",
-        description: "Please write a review comment",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const userReview = {
-      id: `review-${Date.now()}`,
-      userId: user?.id || 'guest',
-      userName: user?.name || 'Guest User',
+  const handleSubmitReview = () => {
+    if (!user || !newReview.comment) return;
+    
+    const review: Review = {
+      id: `new-${Date.now()}`,
+      productId: id || '1',
+      userId: user.id,
+      userName: user.name,
+      userPhoto: user.photoURL,
       rating: newReview.rating,
       comment: newReview.comment,
       date: new Date().toISOString().split('T')[0],
-      userImage: user?.photoURL || 'https://randomuser.me/api/portraits/lego/1.jpg'
+      verified: true
     };
-
-    setReviews([userReview, ...reviews]);
-    setNewReview({ rating: 5, comment: '' });
     
-    toast({
-      title: "Review Submitted",
-      description: "Thank you for your feedback!",
+    setReviews([review, ...reviews]);
+    setNewReview({
+      rating: 5,
+      comment: ''
     });
   };
   
-  // Apply currency conversion
+  // Display stock status
+  const renderStockStatus = () => {
+    if (!product.inStock) {
+      return (
+        <div className="flex items-center mt-2">
+          <span className="bg-red-100 text-red-500 px-2 py-1 rounded text-sm font-medium flex items-center">
+            <Package size={14} className="mr-1" /> 
+            {language === 'ar' ? 'نفذ من المخزون' : 'Out of Stock'}
+          </span>
+        </div>
+      );
+    }
+    
+    if (product.inventory !== undefined) {
+      if (product.inventory < 10) {
+        return (
+          <div className="flex items-center mt-2">
+            <span className="bg-amber-100 text-amber-600 px-2 py-1 rounded text-sm font-medium flex items-center">
+              <AlarmClock size={14} className="mr-1" /> 
+              {language === 'ar' ? `مخزون منخفض (${product.inventory} متبقي)` : `Low Stock (${product.inventory} remaining)`}
+            </span>
+          </div>
+        );
+      }
+      return (
+        <div className="flex items-center mt-2">
+          <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-sm font-medium flex items-center">
+            <Check size={14} className="mr-1" /> 
+            {language === 'ar' ? 'متوفر' : 'In Stock'}
+          </span>
+        </div>
+      );
+    }
+    
+    return null;
+  };
+  
+  // Convert price based on selected currency
   const convertedPrice = convertPrice(product.price);
-  const convertedOldPrice = product.oldPrice ? convertPrice(product.oldPrice) : undefined;
+  const convertedOldPrice = product.oldPrice ? convertPrice(product.oldPrice) : null;
+  
+  // Calculate average rating
+  const avgRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
   
   return (
-    <div className="pb-24">
-      {/* Back button */}
-      <div className="sticky top-0 z-10 bg-background shadow-sm p-3 flex items-center">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ChevronLeft />
-        </Button>
-        <h1 className="font-medium text-center flex-1 mr-8">Product Details</h1>
-      </div>
-      
-      {/* Product Image with gallery */}
-      <div className="relative">
-        <img 
-          src={productImages[currentImageIndex]} 
-          alt={product.name} 
-          className="w-full h-64 object-cover"
-        />
-        
-        {/* Image gallery navigation */}
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-background/70 rounded-full"
-          onClick={handlePrevImage}
-        >
-          <ChevronLeft size={18} />
-        </Button>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-background/70 rounded-full"
-          onClick={handleNextImage}
-        >
-          <ChevronRight size={18} />
-        </Button>
-        
-        {/* Image indicator dots */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1">
-          {productImages.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => handleImageThumbnailClick(index)}
-              className={`w-2 h-2 rounded-full ${
-                index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-              }`}
-            />
-          ))}
-        </div>
-        
-        {/* Badges */}
-        <div className="absolute top-4 left-4 flex flex-col gap-1">
-          {product.onSale && (
-            <Badge className="bg-brand-orange">Sale</Badge>
-          )}
-          {product.isNew && (
-            <Badge className="bg-green-500">New</Badge>
-          )}
-        </div>
-      </div>
-      
-      {/* Image thumbnails */}
-      <div className="p-2 flex justify-center gap-2">
-        {productImages.map((img, index) => (
-          <img 
-            key={index}
-            src={img}
-            alt={`Product thumbnail ${index + 1}`}
-            className={`w-16 h-16 object-cover rounded-md cursor-pointer border-2 ${
-              index === currentImageIndex ? 'border-brand-blue' : 'border-transparent'
-            }`}
-            onClick={() => handleImageThumbnailClick(index)}
-          />
-        ))}
-      </div>
-      
+    <div className="pb-20">
       {/* Product Info */}
       <div className="p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-xl font-bold">{product.name}</h1>
-            <p className="text-gray-500">{product.brand}</p>
+        {/* Product Image Gallery */}
+        <div className="mb-6">
+          <div className="mb-2 rounded-lg overflow-hidden bg-gray-100">
+            <img
+              src={productImages[activeImage]}
+              alt={product.name}
+              className="w-full h-64 object-contain"
+            />
           </div>
-          <div className="flex flex-col items-end">
-            <div className="flex items-baseline gap-2">
-              <span className="font-bold text-xl text-brand-blue">
-                {currencySymbol}{convertedPrice.toFixed(2)}
-              </span>
-              {convertedOldPrice && (
-                <span className="text-gray-400 line-through">
-                  {currencySymbol}{convertedOldPrice.toFixed(2)}
-                </span>
+          <div className="flex space-x-2 overflow-x-auto">
+            {productImages.map((img, index) => (
+              <div
+                key={index}
+                className={`w-16 h-16 flex-shrink-0 rounded border-2 overflow-hidden
+                  ${activeImage === index ? 'border-blue-500' : 'border-transparent'}
+                `}
+                onClick={() => setActiveImage(index)}
+              >
+                <img
+                  src={img}
+                  alt={`${product.name} thumbnail ${index}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              {product.onSale && (
+                <Badge className="bg-brand-orange mb-2">
+                  {language === 'ar' ? 'تخفيض' : 'SALE'}
+                </Badge>
+              )}
+              {product.isNew && (
+                <Badge className="bg-green-500 ml-2 mb-2">
+                  {language === 'ar' ? 'جديد' : 'NEW'}
+                </Badge>
               )}
             </div>
-            <div className="flex items-center mt-1">
-              {/* Star rating */}
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <span 
-                    key={i} 
-                    className={`text-sm ${
-                      i < Math.floor(product.rating) 
-                        ? 'text-yellow-500' 
-                        : 'text-gray-300'
-                    }`}
-                  >
-                    ★
-                  </span>
-                ))}
-              </div>
-              <span className="text-xs text-gray-500 ml-1">{product.rating}</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Tabs for Description and Reviews */}
-        <div className="mt-6">
-          <Tabs defaultValue="description" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="description">Description</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="description" className="mt-4">
-              <div>
-                <p className="text-sm text-gray-600">{product.description}</p>
-                
-                {/* Specs */}
-                <Card className="mt-6 p-3">
-                  <h2 className="font-medium mb-2">Specifications</h2>
-                  <div className="text-sm space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Brand</span>
-                      <span>{product.brand}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Category</span>
-                      <span>{product.category}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Availability</span>
-                      <span>{product.inStock ? 'In Stock' : 'Out of Stock'}</span>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="reviews" className="mt-4">
-              {/* Review submission form */}
-              <Card className="mb-4 p-4">
-                <h3 className="font-medium mb-2">Write a Review</h3>
-                
-                {!isAuthenticated ? (
-                  <div className="text-sm text-gray-500 mb-2">
-                    <p>Please <Button variant="link" className="p-0 h-auto text-brand-blue" onClick={() => navigate('/login')}>login</Button> to leave a review.</p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleReviewSubmit}>
-                    <div className="mb-3">
-                      <label className="block text-sm mb-1">Rating</label>
-                      <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => handleRatingChange(star)}
-                            className="focus:outline-none"
-                          >
-                            <Star 
-                              size={24} 
-                              className={`${newReview.rating >= star ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="mb-3">
-                      <label className="block text-sm mb-1">Comment</label>
-                      <Textarea
-                        placeholder="Share your experience with this product..."
-                        value={newReview.comment}
-                        onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
-                        className="w-full"
-                        rows={3}
-                      />
-                    </div>
-                    
-                    <Button type="submit" className="w-full">
-                      Submit Review
-                    </Button>
-                  </form>
-                )}
-              </Card>
-              
-              {/* Reviews list */}
-              <div className="space-y-4">
-                {reviews.length === 0 ? (
-                  <p className="text-center text-gray-500 py-4">No reviews yet. Be the first to review this product!</p>
-                ) : (
-                  reviews.map((review) => (
-                    <Card key={review.id} className="p-3">
-                      <div className="flex items-start gap-3">
-                        <img 
-                          src={review.userImage} 
-                          alt={review.userName} 
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-medium">{review.userName}</h4>
-                            <span className="text-xs text-gray-500">{review.date}</span>
-                          </div>
-                          
-                          <div className="flex mt-1">
-                            {[...Array(5)].map((_, i) => (
-                              <span 
-                                key={i} 
-                                className={`text-sm ${
-                                  i < review.rating 
-                                    ? 'text-yellow-500' 
-                                    : 'text-gray-300'
-                                }`}
-                              >
-                                ★
-                              </span>
-                            ))}
-                          </div>
-                          
-                          <p className="text-sm mt-2">{review.comment}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-        
-        {/* Quantity Selector */}
-        <div className="mt-6">
-          <h2 className="font-medium mb-2">Quantity</h2>
-          <div className="flex items-center">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="icon"
-              onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-            >
-              -
-            </Button>
-            <span className="mx-4 w-8 text-center">{quantity}</span>
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => setQuantity(quantity + 1)}
-            >
-              +
-            </Button>
-          </div>
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="mt-6 flex flex-col gap-3">
-          <div className="grid grid-cols-3 gap-3">
-            <Button 
-              variant="outline" 
-              className={`flex flex-col items-center py-2 px-0 h-auto ${
-                isInWishlist(product.id) ? 'text-red-500' : ''
-              }`}
+              className={isInWishlist(product.id) ? 'text-red-500' : ''}
               onClick={handleWishlistToggle}
             >
-              <Heart 
-                size={18} 
-                className="mb-1"
-                fill={isInWishlist(product.id) ? 'currentColor' : 'none'} 
+              <Heart
+                className="h-4 w-4"
+                fill={isInWishlist(product.id) ? 'currentColor' : 'none'}
               />
-              <span className="text-xs">Wishlist</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex flex-col items-center py-2 px-0 h-auto"
-              onClick={handleShare}
-            >
-              <Share2 size={18} className="mb-1" />
-              <span className="text-xs">Share</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex flex-col items-center py-2 px-0 h-auto"
-              onClick={handleBookNow}
-            >
-              <span className="text-xs">Book Now</span>
             </Button>
           </div>
           
-          <Button 
-            className="bg-brand-blue hover:bg-brand-blue/90 flex gap-2 items-center"
-            onClick={handleAddToCart}
-          >
-            <ShoppingCart size={16} />
-            Add to Cart
-          </Button>
+          <h1 className="text-xl font-bold mb-1">{product.name}</h1>
+          
+          <div className="flex items-center mb-2">
+            <div className="flex mr-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`h-4 w-4 ${
+                    star <= avgRating
+                      ? 'text-yellow-500 fill-yellow-500'
+                      : 'text-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-sm text-muted-foreground">
+              ({reviews.length} {language === 'ar' ? 'تقييمات' : 'reviews'})
+            </span>
+          </div>
+          
+          <div className="flex items-baseline">
+            <p className="text-2xl font-bold">{currencySymbol}{convertedPrice.toFixed(2)}</p>
+            {convertedOldPrice && (
+              <p className="ml-2 text-muted-foreground line-through">
+                {currencySymbol}{convertedOldPrice.toFixed(2)}
+              </p>
+            )}
+          </div>
+          
+          {/* Stock Status */}
+          {renderStockStatus()}
+          
+          {/* Seller Info (if available) */}
+          {product.sellerId && (
+            <div className="mt-4 text-sm">
+              <p className="text-muted-foreground">
+                {language === 'ar' ? 'البائع' : 'Seller'}: <span className="font-medium text-foreground">Store Name</span>
+              </p>
+            </div>
+          )}
+          
+          {/* Add to Cart Section */}
+          <div className="mt-6 flex items-center">
+            <div className="flex-shrink-0 w-24 mr-2">
+              <Input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={handleQuantityChange}
+                disabled={!product.inStock}
+                className="text-center"
+              />
+            </div>
+            <Button 
+              className="flex-1 flex items-center justify-center" 
+              onClick={handleAddToCart}
+              disabled={!product.inStock}
+            >
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              {language === 'ar' ? 'أضف إلى السلة' : 'Add to Cart'}
+            </Button>
+          </div>
+          
+          {/* Shipping Info */}
+          <div className="mt-6 p-3 bg-muted rounded-lg">
+            <div className="flex items-start">
+              <Truck className="h-5 w-5 mt-0.5 mr-2 text-muted-foreground" />
+              <div>
+                <p className="font-medium">
+                  {language === 'ar' ? 'شحن مجاني' : 'Free Shipping'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {language === 'ar' ? 'للطلبات التي تزيد عن 100' : 'For orders over 100'} {currencySymbol}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+        
+        {/* Product Details Tab */}
+        <Tabs defaultValue="description" className="mt-6">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="description">
+              {language === 'ar' ? 'الوصف' : 'Description'}
+            </TabsTrigger>
+            <TabsTrigger value="specifications">
+              {language === 'ar' ? 'المواصفات' : 'Specifications'}
+            </TabsTrigger>
+            <TabsTrigger value="reviews">
+              {language === 'ar' ? 'التقييمات' : 'Reviews'}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="description" className="pt-4">
+            <p>{product.description}</p>
+            
+            <div className="mt-4">
+              <h3 className="font-medium mb-2">
+                {language === 'ar' ? 'الميزات' : 'Features'}
+              </h3>
+              <ul className="space-y-2">
+                {[1, 2, 3].map(i => (
+                  <li key={i} className="flex items-start">
+                    <Sparkles className="h-5 w-5 mr-2 text-brand-blue flex-shrink-0 mt-0.5" />
+                    <span>Feature {i} description goes here</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="specifications" className="pt-4">
+            <div className="space-y-3">
+              <div className="flex py-2 border-b">
+                <span className="font-medium w-1/3">Brand</span>
+                <span className="w-2/3">{product.brand}</span>
+              </div>
+              <div className="flex py-2 border-b">
+                <span className="font-medium w-1/3">Category</span>
+                <span className="w-2/3">{product.category}</span>
+              </div>
+              <div className="flex py-2 border-b">
+                <span className="font-medium w-1/3">Availability</span>
+                <span className="w-2/3">
+                  {!product.inStock 
+                    ? (language === 'ar' ? 'نفذ من المخزون' : 'Out of Stock') 
+                    : (language === 'ar' ? 'متوفر' : 'In Stock')}
+                </span>
+              </div>
+              <div className="flex py-2 border-b">
+                <span className="font-medium w-1/3">Weight</span>
+                <span className="w-2/3">0.5 kg</span>
+              </div>
+              <div className="flex py-2">
+                <span className="font-medium w-1/3">Warranty</span>
+                <span className="w-2/3">1 year</span>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="reviews" className="pt-4">
+            {/* Add a review form */}
+            {user && (
+              <Card className="mb-6">
+                <CardContent className="pt-6">
+                  <h3 className="font-medium mb-4">
+                    {language === 'ar' ? 'أضف تقييمك' : 'Add Your Review'}
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        {language === 'ar' ? 'التقييم' : 'Rating'}
+                      </label>
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-6 w-6 cursor-pointer ${
+                              star <= newReview.rating
+                                ? 'text-yellow-500 fill-yellow-500'
+                                : 'text-gray-300'
+                            }`}
+                            onClick={() => setNewReview({...newReview, rating: star})}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        {language === 'ar' ? 'تعليقك' : 'Your Review'}
+                      </label>
+                      <Textarea
+                        value={newReview.comment}
+                        onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
+                        placeholder={language === 'ar' ? 'اكتب تعليقك هنا...' : 'Write your review here...'}
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                    <Button onClick={handleSubmitReview}>
+                      {language === 'ar' ? 'إرسال التقييم' : 'Submit Review'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Reviews list */}
+            <div className="space-y-4">
+              <h3 className="font-medium">
+                {reviews.length} {language === 'ar' ? 'تقييمات' : 'Reviews'}
+              </h3>
+              
+              {reviews.map((review) => (
+                <div key={review.id} className="border-b pb-4">
+                  <div className="flex items-center mb-2">
+                    <Avatar className="h-8 w-8 mr-2">
+                      <AvatarImage src={review.userPhoto} />
+                      <AvatarFallback>{review.userName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center">
+                        <span className="font-medium mr-2">{review.userName}</span>
+                        {review.verified && (
+                          <Badge variant="outline" className="text-xs">
+                            <Check className="h-3 w-3 mr-1" /> Verified
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{review.date}</div>
+                    </div>
+                  </div>
+                  <div className="flex mb-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-4 w-4 ${
+                          star <= review.rating
+                            ? 'text-yellow-500 fill-yellow-500'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-sm">{review.comment}</p>
+                </div>
+              ))}
+              
+              {reviews.length === 0 && (
+                <p className="text-center text-muted-foreground py-6">
+                  {language === 'ar' ? 'لا توجد تقييمات بعد' : 'No reviews yet'}
+                </p>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

@@ -55,6 +55,13 @@ export const translations = {
     seller: "Seller",
     noOrders: "No orders placed yet",
     support: "Support",
+    sellerDashboard: "Seller Dashboard",
+    becomeSeller: "Become a Seller",
+    inStock: "In Stock",
+    lowStock: "Low Stock",
+    outOfStock: "Out of Stock",
+    productDetails: "Product Details",
+    productManagement: "Product Management",
   },
   ar: {
     home: "الرئيسية",
@@ -80,6 +87,13 @@ export const translations = {
     seller: "البائع",
     noOrders: "لا توجد طلبات بعد",
     support: "الدعم",
+    sellerDashboard: "لوحة تحكم البائع",
+    becomeSeller: "كن بائعًا",
+    inStock: "متوفر",
+    lowStock: "مخزون منخفض",
+    outOfStock: "نفذ من المخزون",
+    productDetails: "تفاصيل المنتج",
+    productManagement: "إدارة المنتجات",
   }
 };
 
