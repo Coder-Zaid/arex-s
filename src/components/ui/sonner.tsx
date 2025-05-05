@@ -23,10 +23,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
-        onClick: (toast) => {
-          // Navigate to cart when toast is clicked
-          navigate('/cart');
-        }
+      }}
+      onToastClick={(toast) => {
+        // Navigate to cart when toast is clicked
+        const route = toast.data?.route || '/cart';
+        navigate(route);
       }}
       {...props}
     />
