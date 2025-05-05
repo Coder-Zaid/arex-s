@@ -23,10 +23,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
-        onClick: () => {
-          // Navigate to cart when toast is clicked
-          navigate('/cart');
-        },
+        // Custom properties need to be spread separately, not as part of the toastOptions
+      }}
+      onClick={() => {
+        // Navigate to cart when toast is clicked
+        navigate('/cart');
       }}
       {...props}
     />
@@ -40,10 +41,19 @@ export const toast = ({ route = '/cart', ...props }: any & { route?: string }) =
   const { toast: originalToast } = require('sonner');
   return originalToast({
     ...props,
-    onClick: () => {
-      if (route) {
-        window.location.href = route;
+    onDismiss: () => {
+      if (props.onDismiss) {
+        props.onDismiss();
       }
     },
+    onAutoClose: () => {
+      if (props.onAutoClose) {
+        props.onAutoClose();
+      }
+    },
+    // Use custom properties supported by sonner
+    style: { cursor: 'pointer' },
+    // Store the route in data attribute to be used by global click handler
+    data: { route }
   });
 };
