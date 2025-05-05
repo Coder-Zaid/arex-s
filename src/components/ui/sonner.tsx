@@ -12,7 +12,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="toaster group"
+      className="toaster group cursor-pointer"
       toastOptions={{
         classNames: {
           toast:
@@ -22,14 +22,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton:
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        },
+        // Handle toast clicks via the onDismiss callback which is supported by the library
+        onDismiss: (toast) => {
+          // Navigate to cart when toast is clicked or dismissed
+          const route = toast.data?.route || '/cart';
+          navigate(route);
         }
-      }}
-      className="cursor-pointer"
-      // We need to move the click handler to the component level
-      onToastClick={(toast) => {
-        // Navigate to cart when toast is clicked
-        const route = toast.data?.route || '/cart';
-        navigate(route);
       }}
       {...props}
     />
