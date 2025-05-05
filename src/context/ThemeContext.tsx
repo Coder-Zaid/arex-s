@@ -40,9 +40,13 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       // Apply black color for selected items in dark mode
       document.documentElement.style.setProperty('--selected-bg', '#191919');
       document.documentElement.style.setProperty('--selected-text', '#ffffff');
+      
+      // Fix Apple logo visibility in dark mode
+      document.documentElement.style.setProperty('--apple-logo-filter', 'invert(1)');
     } else {
       document.documentElement.style.setProperty('--selected-bg', '#f0f0f0');
       document.documentElement.style.setProperty('--selected-text', '#2563eb');
+      document.documentElement.style.setProperty('--apple-logo-filter', 'none');
     }
   };
 

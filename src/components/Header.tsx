@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
@@ -14,6 +14,12 @@ const Header = () => {
   const { isAuthenticated, user } = useAuth();
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
+  const navigate = useNavigate();
+  
+  // Handle cart notification click
+  const handleCartClick = () => {
+    navigate('/cart');
+  };
   
   return (
     <header className="sticky top-0 z-10 bg-background border-b border-border shadow-sm">
@@ -56,14 +62,14 @@ const Header = () => {
               )}
             </Link>
             
-            <Link to="/cart" className="relative">
+            <div className="relative cursor-pointer" onClick={handleCartClick}>
               <ShoppingCart size={20} />
               {getTotalItems() > 0 && (
                 <span className="absolute -top-1 -right-1 bg-brand-orange text-white rounded-full text-xs w-4 h-4 flex items-center justify-center">
                   {getTotalItems()}
                 </span>
               )}
-            </Link>
+            </div>
             
             <Link to={isAuthenticated ? "/profile" : "/login"}>
               <User size={20} />

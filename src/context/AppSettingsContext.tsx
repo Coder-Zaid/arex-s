@@ -13,6 +13,7 @@ interface AppSettingsContextType {
   isRtl: boolean;
   translations: Record<string, Record<string, string>>;
   detectUserLocation: () => void;
+  convertPrice: (price: number) => number;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -20,6 +21,12 @@ const AppSettingsContext = createContext<AppSettingsContextType | undefined>(und
 export const currencySymbols = {
   USD: '$',
   SAR: 'ر.س'
+};
+
+// Exchange rates (simplified)
+const exchangeRates = {
+  USD_TO_SAR: 3.75,
+  SAR_TO_USD: 0.27
 };
 
 // Add translations for Arabic and English
@@ -30,6 +37,7 @@ export const translations = {
     wishlist: "Wishlist",
     cart: "Cart",
     profile: "Profile",
+    orders: "Orders",
     about: "About",
     featuredProducts: "Featured Products",
     newArrivals: "New Arrivals",
@@ -45,7 +53,7 @@ export const translations = {
     noProductsFound: "No products found",
     clearSearch: "Clear search",
     seller: "Seller",
-    orders: "Orders",
+    noOrders: "No orders placed yet",
     support: "Support",
   },
   ar: {
@@ -54,6 +62,7 @@ export const translations = {
     wishlist: "المفضلة",
     cart: "السلة",
     profile: "الحساب",
+    orders: "الطلبات",
     about: "عن الشركة",
     featuredProducts: "المنتجات المميزة",
     newArrivals: "وصل حديثا",
@@ -69,7 +78,7 @@ export const translations = {
     noProductsFound: "لا توجد منتجات",
     clearSearch: "مسح البحث",
     seller: "البائع",
-    orders: "الطلبات",
+    noOrders: "لا توجد طلبات بعد",
     support: "الدعم",
   }
 };
@@ -132,6 +141,16 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
     document.documentElement.lang = newLanguage;
   };
 
+  // Convert price based on selected currency
+  const convertPrice = (price: number): number => {
+    // If price is in USD and currency is SAR, convert to SAR
+    if (currency === 'SAR') {
+      return price * exchangeRates.USD_TO_SAR;
+    }
+    // Price is already in the selected currency
+    return price;
+  };
+
   const isRtl = language === 'ar';
 
   return (
@@ -144,7 +163,8 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
         currencySymbol: currencySymbols[currency],
         isRtl,
         translations,
-        detectUserLocation
+        detectUserLocation,
+        convertPrice
       }}
     >
       {children}

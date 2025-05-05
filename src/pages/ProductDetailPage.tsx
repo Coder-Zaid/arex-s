@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { products } from '@/data/products';
-import { Heart, ShoppingCart, Share2, ChevronLeft } from 'lucide-react';
+import { Heart, ShoppingCart, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useAppSettings } from '@/context/AppSettingsContext';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,10 @@ const ProductDetailPage = () => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const { currencySymbol, convertPrice } = useAppSettings();
+  
+  // Image gallery setup
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const product = products.find(p => p.id === id);
   
@@ -30,6 +35,26 @@ const ProductDetailPage = () => {
       </div>
     );
   }
+  
+  // Setup product images - main image + additional mock images
+  const productImages = [
+    product.image,
+    // Add alternative images (mocked for demo)
+    product.image.replace('.jpg', '-alt1.jpg').replace('.png', '-alt1.png'),
+    product.image.replace('.jpg', '-alt2.jpg').replace('.png', '-alt2.png')
+  ];
+  
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
+  };
+  
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
+  };
   
   const handleWishlistToggle = () => {
     if (isInWishlist(product.id)) {
@@ -68,6 +93,10 @@ const ProductDetailPage = () => {
     }
   };
   
+  // Apply currency conversion
+  const convertedPrice = convertPrice(product.price);
+  const convertedOldPrice = product.oldPrice ? convertPrice(product.oldPrice) : undefined;
+  
   return (
     <div className="pb-24">
       {/* Back button */}
@@ -78,13 +107,43 @@ const ProductDetailPage = () => {
         <h1 className="font-medium text-center flex-1 mr-8">Product Details</h1>
       </div>
       
-      {/* Product Image */}
+      {/* Product Image with gallery */}
       <div className="relative">
         <img 
-          src={product.image} 
+          src={productImages[currentImageIndex]} 
           alt={product.name} 
           className="w-full h-64 object-cover"
         />
+        
+        {/* Image gallery navigation */}
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white/70 dark:bg-black/70 rounded-full"
+          onClick={handlePrevImage}
+        >
+          <ChevronLeft size={18} />
+        </Button>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white/70 dark:bg-black/70 rounded-full"
+          onClick={handleNextImage}
+        >
+          <ChevronRight size={18} />
+        </Button>
+        
+        {/* Image indicator dots */}
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1">
+          {productImages.map((_, index) => (
+            <span 
+              key={index} 
+              className={`w-2 h-2 rounded-full ${
+                index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
         
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-1">
@@ -107,11 +166,11 @@ const ProductDetailPage = () => {
           <div className="flex flex-col items-end">
             <div className="flex items-baseline gap-2">
               <span className="font-bold text-xl text-brand-blue">
-                ${product.price.toFixed(2)}
+                {currencySymbol}{convertedPrice.toFixed(2)}
               </span>
-              {product.oldPrice && (
+              {convertedOldPrice && (
                 <span className="text-gray-400 line-through">
-                  ${product.oldPrice.toFixed(2)}
+                  {currencySymbol}{convertedOldPrice.toFixed(2)}
                 </span>
               )}
             </div>

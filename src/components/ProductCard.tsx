@@ -17,7 +17,7 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const { currencySymbol, language } = useAppSettings();
+  const { currencySymbol, language, convertPrice } = useAppSettings();
   
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,6 +71,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
     );
   };
   
+  // Apply currency conversion
+  const convertedPrice = convertPrice(product.price);
+  const convertedOldPrice = product.oldPrice ? convertPrice(product.oldPrice) : undefined;
+  
   return (
     <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-md">
       <Link to={`/product/${product.id}`}>
@@ -117,11 +121,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
             
             <div className="flex items-baseline gap-2">
               <span className="font-bold text-brand-blue">
-                {currencySymbol}{formatNumber(product.price)}
+                {currencySymbol}{formatNumber(convertedPrice)}
               </span>
-              {product.oldPrice && (
+              {convertedOldPrice && (
                 <span className="text-gray-400 line-through text-xs">
-                  {currencySymbol}{formatNumber(product.oldPrice)}
+                  {currencySymbol}{formatNumber(convertedOldPrice)}
                 </span>
               )}
             </div>
