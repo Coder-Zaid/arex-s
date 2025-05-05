@@ -1,22 +1,11 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User } from '../types';
-import { toast } from '@/components/ui/sonner';
-import { auth, googleProvider, appleProvider } from '../firebase/config';
-import { 
-  signInWithEmailAndPassword, 
-  signInWithPopup, 
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  loginWithApple: () => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -47,59 +36,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check both Firebase and localStorage
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in with Firebase
-        const userData: User = {
-          id: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          name: firebaseUser.displayName || '',
-          phone: firebaseUser.phoneNumber || undefined,
-          photoURL: firebaseUser.photoURL || undefined
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-      } else {
-        // Check if user is stored in localStorage
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        } else {
-          setUser(null);
-        }
-      }
-      setLoading(false);
-    });
-    
-    return () => unsubscribe();
+    // Check if user is stored in localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Try Firebase authentication first
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const firebaseUser = userCredential.user;
-        
-        const userData: User = {
-          id: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          name: firebaseUser.displayName || '',
-          phone: firebaseUser.phoneNumber || undefined
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        return;
-      } catch (firebaseError) {
-        console.log("Firebase auth failed, falling back to mock users", firebaseError);
-      }
+      // Simulate API request delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Fallback to mock users
       const foundUser = mockUsers.find(u => u.email === email);
       if (!foundUser) {
         throw new Error('User not found');
@@ -112,98 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithGoogle = async () => {
-    setLoading(true);
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = result.user;
-      
-      const userData: User = {
-        id: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        name: firebaseUser.displayName || '',
-        phone: firebaseUser.phoneNumber || undefined,
-        photoURL: firebaseUser.photoURL || undefined
-      };
-      
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      toast({
-        title: "Google Sign-In Successful",
-        description: "You've been signed in with Google",
-        route: '/'
-      });
-    } catch (error) {
-      toast({
-        title: "Sign-In Failed",
-        description: "Failed to sign in with Google",
-        variant: "destructive"
-      });
-      console.error("Google sign-in error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const loginWithApple = async () => {
-    setLoading(true);
-    try {
-      const result = await signInWithPopup(auth, appleProvider);
-      const firebaseUser = result.user;
-      
-      const userData: User = {
-        id: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        name: firebaseUser.displayName || '',
-        phone: firebaseUser.phoneNumber || undefined,
-        photoURL: firebaseUser.photoURL || undefined
-      };
-      
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      toast({
-        title: "Apple Sign-In Successful",
-        description: "You've been signed in with Apple",
-        route: '/'
-      });
-    } catch (error) {
-      toast({
-        title: "Sign-In Failed",
-        description: "Failed to sign in with Apple",
-        variant: "destructive"
-      });
-      console.error("Apple sign-in error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const register = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
-      // Try Firebase registration
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const firebaseUser = userCredential.user;
-        
-        const userData: User = {
-          id: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          name: name,
-          phone: firebaseUser.phoneNumber || undefined
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        return;
-      } catch (firebaseError) {
-        console.log("Firebase registration failed, falling back to mock users", firebaseError);
-      }
+      // Simulate API request delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Fallback to mock users
       const newUser: User = {
         id: `user-${Date.now()}`,
         email,
@@ -221,12 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    signOut(auth).then(() => {
-      setUser(null);
-      localStorage.removeItem('user');
-    }).catch((error) => {
-      console.error("Error signing out: ", error);
-    });
+    setUser(null);
+    localStorage.removeItem('user');
   };
 
   return (
@@ -234,9 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{ 
         user, 
         loading, 
-        login,
-        loginWithGoogle,
-        loginWithApple,
+        login, 
         register, 
         logout,
         isAuthenticated: !!user 

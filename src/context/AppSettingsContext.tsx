@@ -12,8 +12,6 @@ interface AppSettingsContextType {
   currencySymbol: string;
   isRtl: boolean;
   translations: Record<string, Record<string, string>>;
-  detectUserLocation: () => void;
-  convertPrice: (price: number) => number;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -21,12 +19,6 @@ const AppSettingsContext = createContext<AppSettingsContextType | undefined>(und
 export const currencySymbols = {
   USD: '$',
   SAR: 'ر.س'
-};
-
-// Exchange rates (simplified)
-const exchangeRates = {
-  USD_TO_SAR: 3.75,
-  SAR_TO_USD: 0.27
 };
 
 // Add translations for Arabic and English
@@ -37,8 +29,6 @@ export const translations = {
     wishlist: "Wishlist",
     cart: "Cart",
     profile: "Profile",
-    orders: "Orders",
-    about: "About",
     featuredProducts: "Featured Products",
     newArrivals: "New Arrivals",
     flashDeals: "Flash Deals",
@@ -52,9 +42,6 @@ export const translations = {
     results: "results",
     noProductsFound: "No products found",
     clearSearch: "Clear search",
-    seller: "Seller",
-    noOrders: "No orders placed yet",
-    support: "Support",
   },
   ar: {
     home: "الرئيسية",
@@ -62,8 +49,6 @@ export const translations = {
     wishlist: "المفضلة",
     cart: "السلة",
     profile: "الحساب",
-    orders: "الطلبات",
-    about: "عن الشركة",
     featuredProducts: "المنتجات المميزة",
     newArrivals: "وصل حديثا",
     flashDeals: "عروض سريعة",
@@ -77,9 +62,6 @@ export const translations = {
     results: "نتائج",
     noProductsFound: "لا توجد منتجات",
     clearSearch: "مسح البحث",
-    seller: "البائع",
-    noOrders: "لا توجد طلبات بعد",
-    support: "الدعم",
   }
 };
 
@@ -94,9 +76,6 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
     
     if (savedCurrency && (savedCurrency === 'USD' || savedCurrency === 'SAR')) {
       setCurrency(savedCurrency);
-    } else {
-      // Use default currency if not found in localStorage
-      detectUserLocation();
     }
     
     if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ar')) {
@@ -105,27 +84,6 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
       document.documentElement.lang = savedLanguage;
     }
   }, []);
-
-  const detectUserLocation = () => {
-    // This is a simple implementation that could be expanded with actual geolocation
-    try {
-      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      console.log('Detected timezone:', userTimeZone);
-      
-      // Very basic region detection - could be expanded with a proper geolocation service
-      if (userTimeZone.includes('Asia/Riyadh') || 
-          userTimeZone.includes('Asia/Dubai') || 
-          userTimeZone.includes('Asia/Qatar')) {
-        handleSetCurrency('SAR');
-      } else {
-        handleSetCurrency('USD');
-      }
-    } catch (error) {
-      console.error('Error detecting location:', error);
-      // Default to USD if detection fails
-      handleSetCurrency('USD');
-    }
-  };
 
   const handleSetCurrency = (newCurrency: CurrencyType) => {
     setCurrency(newCurrency);
@@ -141,16 +99,6 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
     document.documentElement.lang = newLanguage;
   };
 
-  // Convert price based on selected currency
-  const convertPrice = (price: number): number => {
-    // If price is in USD and currency is SAR, convert to SAR
-    if (currency === 'SAR') {
-      return price * exchangeRates.USD_TO_SAR;
-    }
-    // Price is already in the selected currency
-    return price;
-  };
-
   const isRtl = language === 'ar';
 
   return (
@@ -162,9 +110,7 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
         setLanguage: handleSetLanguage,
         currencySymbol: currencySymbols[currency],
         isRtl,
-        translations,
-        detectUserLocation,
-        convertPrice
+        translations
       }}
     >
       {children}

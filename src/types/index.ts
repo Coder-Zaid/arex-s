@@ -5,12 +5,6 @@ export interface User {
   name: string;
   address?: string;
   phone?: string;
-  isSeller?: boolean;
-  storeDetails?: {
-    name: string;
-    description: string;
-    logo?: string;
-  };
 }
 
 export interface Product {
@@ -27,8 +21,6 @@ export interface Product {
   featured?: boolean;
   isNew?: boolean;
   onSale?: boolean;
-  sellerId?: string;
-  inventory?: number;
 }
 
 export interface CartItem {
@@ -43,14 +35,9 @@ export interface Order {
   currency: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   paymentMethod: 'cash' | 'card';
-  paymentStatus?: 'pending' | 'paid' | 'refunded' | 'failed';
   deliveryAddress: string;
   orderDate: string;
   estimatedDelivery?: string;
-  actualDelivery?: string;
-  trackingNumber?: string;
-  sellerId?: string;
-  buyerId?: string;
 }
 
 export interface Banner {
@@ -59,37 +46,4 @@ export interface Banner {
   description: string;
   image: string;
   link: string;
-}
-
-export interface Location {
-  lat: number;
-  lng: number;
-  address: string;
-}
-
-export interface DeliveryEstimate {
-  minDays: number;
-  maxDays: number;
-  distance?: number;
-  estimatedDate?: string;
-}
-
-export interface SupportTicket {
-  id: string;
-  userId: string;
-  subject: string;
-  description: string;
-  status: 'open' | 'in-progress' | 'resolved' | 'closed';
-  createdAt: string;
-  updatedAt: string;
-  messages: SupportMessage[];
-}
-
-export interface SupportMessage {
-  id: string;
-  ticketId: string;
-  senderId: string;
-  message: string;
-  timestamp: string;
-  isStaff: boolean;
 }

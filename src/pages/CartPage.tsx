@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,12 +7,10 @@ import { useCart } from '@/context/CartContext';
 import { ChevronLeft, Trash2, ShoppingBag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { useAppSettings } from '@/context/AppSettingsContext';
 
 const CartPage = () => {
   const navigate = useNavigate();
   const { items, removeFromCart, updateQuantity, getTotalPrice } = useCart();
-  const { currencySymbol, convertPrice } = useAppSettings();
   
   if (items.length === 0) {
     return (
@@ -30,70 +28,71 @@ const CartPage = () => {
   return (
     <div className="pb-36">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background shadow-sm p-3 flex items-center">
+      <div className="sticky top-0 z-10 bg-white shadow-sm p-3 flex items-center">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ChevronLeft />
         </Button>
-        <h1 className="font-medium text-center flex-1 mr-8">Shopping Cart ({items.length})</h1>
+        <Button 
+          variant="ghost"
+          className="font-medium text-center flex-1 mr-8"
+          onClick={() => navigate('/cart')}
+        >
+          <h1>Shopping Cart ({items.length})</h1>
+        </Button>
       </div>
       
       {/* Cart Items */}
       <div className="p-4 space-y-4">
-        {items.map((item) => {
-          // Apply currency conversion
-          const convertedPrice = convertPrice(item.product.price);
-          
-          return (
-            <Card key={item.product.id} className="overflow-hidden">
-              <CardContent className="p-3">
-                <div className="flex gap-3">
-                  <img 
-                    src={item.product.image} 
-                    alt={item.product.name} 
-                    className="w-20 h-20 object-cover rounded-md"
-                  />
+        {items.map((item) => (
+          <Card key={item.product.id} className="overflow-hidden">
+            <CardContent className="p-3">
+              <div className="flex gap-3">
+                <img 
+                  src={item.product.image} 
+                  alt={item.product.name} 
+                  className="w-20 h-20 object-cover rounded-md"
+                />
+                
+                <div className="flex-1">
+                  <div className="flex justify-between">
+                    <h3 className="font-medium text-sm line-clamp-2">{item.product.name}</h3>
+                    <button 
+                      onClick={() => removeFromCart(item.product.id)}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                   
-                  <div className="flex-1">
-                    <div className="flex justify-between">
-                      <h3 className="font-medium text-sm line-clamp-2">{item.product.name}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{item.product.brand}</p>
+                  
+                  <div className="flex justify-between items-center mt-2">
+                    <div className="flex items-center border rounded-md">
                       <button 
-                        onClick={() => removeFromCart(item.product.id)}
-                        className="text-gray-400 hover:text-red-500"
+                        className="px-2 py-1 text-gray-500"
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        disabled={item.quantity <= 1}
                       >
-                        <Trash2 size={16} />
+                        -
+                      </button>
+                      <span className="px-2">{item.quantity}</span>
+                      <button 
+                        className="px-2 py-1 text-gray-500"
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                      >
+                        +
                       </button>
                     </div>
                     
-                    <p className="text-sm text-gray-500 mt-1">{item.product.brand}</p>
-                    
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="flex items-center border rounded-md border-border">
-                        <button 
-                          className="px-2 py-1 text-foreground"
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          disabled={item.quantity <= 1}
-                        >
-                          -
-                        </button>
-                        <span className="px-2">{item.quantity}</span>
-                        <button 
-                          className="px-2 py-1 text-foreground"
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                        >
-                          +
-                        </button>
-                      </div>
-                      
-                      <div className="font-bold text-brand-blue">
-                        {currencySymbol}{(convertedPrice * item.quantity).toFixed(2)}
-                      </div>
+                    <div className="font-bold text-brand-blue">
+                      ${(item.product.price * item.quantity).toFixed(2)}
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
       
       {/* Promo Code */}
@@ -108,29 +107,28 @@ const CartPage = () => {
       <div className="px-4 mt-6">
         <h2 className="font-bold mb-3">Order Summary</h2>
         <div className="space-y-2 text-sm">
-          {/* Apply currency conversion to all prices */}
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>{currencySymbol}{convertPrice(getTotalPrice()).toFixed(2)}</span>
+            <span>${getTotalPrice().toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span>Shipping</span>
-            <span>{currencySymbol}{convertPrice(5.99).toFixed(2)}</span>
+            <span>$5.99</span>
           </div>
           <div className="flex justify-between">
             <span>Tax</span>
-            <span>{currencySymbol}{(convertPrice(getTotalPrice()) * 0.05).toFixed(2)}</span>
+            <span>${(getTotalPrice() * 0.05).toFixed(2)}</span>
           </div>
         </div>
         <Separator className="my-3" />
         <div className="flex justify-between font-bold">
           <span>Total</span>
-          <span>{currencySymbol}{(convertPrice(getTotalPrice()) + convertPrice(5.99) + (convertPrice(getTotalPrice()) * 0.05)).toFixed(2)}</span>
+          <span>${(getTotalPrice() + 5.99 + (getTotalPrice() * 0.05)).toFixed(2)}</span>
         </div>
       </div>
       
       {/* Checkout Button */}
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-background border-t border-border">
+      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t">
         <Button 
           className="w-full bg-brand-blue hover:bg-brand-blue/90"
           onClick={() => navigate('/checkout')}

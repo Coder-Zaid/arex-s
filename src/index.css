@@ -32,10 +32,6 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 199 95% 48%;
-    
-    --selected-bg: #f0f0f0;
-    --selected-text: #2563eb;
-    --apple-logo-filter: none;
 
     --radius: 1rem;
   }
@@ -68,10 +64,6 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    
-    --selected-bg: #191919;
-    --selected-text: #ffffff;
-    --apple-logo-filter: invert(1);
   }
 }
 
@@ -87,11 +79,6 @@
   /* Fix RTL text direction for number inputs */
   input[type="number"] {
     direction: ltr;
-  }
-  
-  /* Apply filter to Apple logo in dark mode */
-  .apple-logo {
-    filter: var(--apple-logo-filter);
   }
 }
 
@@ -121,12 +108,6 @@
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
-}
-
-/* Cart tab styling */
-.cart-tab.active {
-  background-color: var(--selected-bg);
-  color: var(--selected-text);
 }
 
 @layer utilities {

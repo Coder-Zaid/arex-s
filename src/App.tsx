@@ -1,5 +1,7 @@
+
 import React from 'react';
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -22,18 +24,16 @@ import ProfilePage from "@/pages/ProfilePage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import OrderConfirmationPage from "@/pages/OrderConfirmationPage";
 import OrderDetailsPage from "@/pages/OrderDetailsPage";
-import OrdersPage from "@/pages/OrdersPage";
 import SearchPage from "@/pages/SearchPage";
 import AboutPage from "@/pages/AboutPage";
-import SellerDashboard from "@/pages/SellerDashboard";
 import NotFound from "@/pages/NotFound";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
       <AppSettingsProvider>
         <TooltipProvider>
           <AuthProvider>
@@ -54,13 +54,12 @@ const App = () => (
                         <Route path="/checkout" element={<CheckoutPage />} />
                         <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
                         <Route path="/order/:id" element={<OrderDetailsPage />} />
-                        <Route path="/orders" element={<OrdersPage />} />
-                        <Route path="/seller-dashboard" element={<SellerDashboard />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Layout>
                     <Toaster />
+                    <Sonner />
                   </BrowserRouter>
                 </OrderProvider>
               </WishlistProvider>
@@ -68,8 +67,8 @@ const App = () => (
           </AuthProvider>
         </TooltipProvider>
       </AppSettingsProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
 );
 
 export default App;

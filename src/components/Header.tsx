@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { ShoppingCart, Heart, Search, Package } from 'lucide-react';
+import { User, ShoppingCart, Heart, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ThemeToggle from './ThemeToggle';
 import SettingsMenu from './SettingsMenu';
@@ -14,12 +14,6 @@ const Header = () => {
   const { isAuthenticated, user } = useAuth();
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
-  const navigate = useNavigate();
-  
-  // Handle cart notification click
-  const handleCartClick = () => {
-    navigate('/cart');
-  };
   
   return (
     <header className="sticky top-0 z-10 bg-background border-b border-border shadow-sm">
@@ -28,9 +22,9 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <img 
-              src="/lovable-uploads/73e6fac1-59a6-46dd-8d53-a8eed9d28374.png" 
-              alt="Riyal Logo" 
-              className="h-10 w-10 mr-2 dark:invert" 
+              src="/lovable-uploads/f1f11f46-3e99-449c-9040-b277a9805245.png" 
+              alt="Arex Logo" 
+              className="h-10 w-10 mr-2" 
             />
             <span className="font-bold text-xl text-brand-blue hidden sm:inline-block">Arex</span>
             <span className="font-bold text-xl text-brand-blue inline-block sm:hidden">Arex</span>
@@ -62,17 +56,17 @@ const Header = () => {
               )}
             </Link>
             
-            <div className="relative cursor-pointer" onClick={handleCartClick}>
+            <Link to="/cart" className="relative">
               <ShoppingCart size={20} />
               {getTotalItems() > 0 && (
                 <span className="absolute -top-1 -right-1 bg-brand-orange text-white rounded-full text-xs w-4 h-4 flex items-center justify-center">
                   {getTotalItems()}
                 </span>
               )}
-            </div>
+            </Link>
             
-            <Link to={isAuthenticated ? "/orders" : "/login"}>
-              <Package size={20} />
+            <Link to={isAuthenticated ? "/profile" : "/login"}>
+              <User size={20} />
             </Link>
           </div>
         </div>

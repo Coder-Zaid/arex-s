@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, ShoppingCart, PackageCheck, Info } from 'lucide-react';
+import { Home, Search, Heart, ShoppingCart, User, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
@@ -44,15 +44,15 @@ const BottomNavigation = () => {
           active={isActive('/cart')}
         />
         <NavItem 
-          to="/orders"
-          icon={<PackageCheck size={20} />}
-          label={t.orders}
-          active={isActive('/orders') || isActive('/order/')}
+          to="/profile"
+          icon={<User size={20} />}
+          label={t.profile}
+          active={isActive('/profile')}
         />
         <NavItem 
           to="/about"
           icon={<Info size={20} />}
-          label={t.about}
+          label={language === 'ar' ? 'عن الشركة' : 'About'}
           active={isActive('/about')}
         />
       </div>
@@ -77,7 +77,7 @@ const NavItem = ({ to, icon, label, active }: NavItemProps) => {
         "flex flex-col items-center space-y-1 px-1", 
         active 
           ? theme === 'dark' 
-            ? "text-white bg-[#191919] rounded-md px-2 py-1" 
+            ? "text-white bg-gray-800 rounded-md px-2 py-1" 
             : "text-brand-blue" 
           : theme === 'dark' 
             ? "text-gray-400" 

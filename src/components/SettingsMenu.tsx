@@ -9,14 +9,12 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Settings, Globe, CreditCard } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { useAppSettings, currencySymbols } from '@/context/AppSettingsContext';
 import { useToast } from '@/components/ui/use-toast';
-import { useTheme } from '@/context/ThemeContext';
 
 const SettingsMenu = () => {
-  const { currency, language, setCurrency, setLanguage, detectUserLocation } = useAppSettings();
-  const { theme, toggleTheme } = useTheme();
+  const { currency, language, setCurrency, setLanguage } = useAppSettings();
   const { toast } = useToast();
 
   const handleCurrencyChange = (newCurrency: 'USD' | 'SAR') => {
@@ -37,15 +35,6 @@ const SettingsMenu = () => {
     });
   };
 
-  const handleAutoDetect = () => {
-    detectUserLocation();
-    toast({
-      title: 'Auto-detection',
-      description: 'Detecting your location to set currency...',
-      duration: 2000
-    });
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -54,55 +43,38 @@ const SettingsMenu = () => {
           <span className="sr-only">Settings</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className={theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}>
-        <DropdownMenuLabel className={theme === 'dark' ? 'text-white' : ''}>Settings</DropdownMenuLabel>
-        <DropdownMenuSeparator className={theme === 'dark' ? 'bg-gray-800' : ''} />
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Settings</DropdownMenuLabel>
+        <DropdownMenuSeparator />
         
-        <DropdownMenuLabel className={`text-xs pt-2 ${theme === 'dark' ? 'text-gray-400' : ''}`}>Currency</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs pt-2">Currency</DropdownMenuLabel>
         <DropdownMenuItem 
           onClick={() => handleCurrencyChange('USD')}
-          className={currency === 'USD' ? `${theme === 'dark' ? 'bg-[#191919] text-white' : 'bg-muted'}` : theme === 'dark' ? 'text-gray-300' : ''}
+          className={currency === 'USD' ? 'bg-muted' : ''}
         >
           {currencySymbols.USD} US Dollar (USD)
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleCurrencyChange('SAR')}
-          className={currency === 'SAR' ? `${theme === 'dark' ? 'bg-[#191919] text-white' : 'bg-muted'}` : theme === 'dark' ? 'text-gray-300' : ''}
+          className={currency === 'SAR' ? 'bg-muted' : ''}
         >
           {currencySymbols.SAR} Saudi Riyal (SAR)
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={handleAutoDetect}
-          className={theme === 'dark' ? 'text-gray-300' : ''}
-        >
-          <Globe size={14} className="mr-2" />
-          Auto-detect (Location)
-        </DropdownMenuItem>
         
-        <DropdownMenuSeparator className={theme === 'dark' ? 'bg-gray-800' : ''} />
+        <DropdownMenuSeparator />
         
-        <DropdownMenuLabel className={`text-xs pt-2 ${theme === 'dark' ? 'text-gray-400' : ''}`}>Language</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs pt-2">Language</DropdownMenuLabel>
         <DropdownMenuItem 
           onClick={() => handleLanguageChange('en')}
-          className={language === 'en' ? `${theme === 'dark' ? 'bg-[#191919] text-white' : 'bg-muted'}` : theme === 'dark' ? 'text-gray-300' : ''}
+          className={language === 'en' ? 'bg-muted' : ''}
         >
           🇺🇸 English
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleLanguageChange('ar')}
-          className={language === 'ar' ? `${theme === 'dark' ? 'bg-[#191919] text-white' : 'bg-muted'}` : theme === 'dark' ? 'text-gray-300' : ''}
+          className={language === 'ar' ? 'bg-muted' : ''}
         >
           🇸🇦 العربية
-        </DropdownMenuItem>
-        
-        <DropdownMenuSeparator className={theme === 'dark' ? 'bg-gray-800' : ''} />
-        
-        <DropdownMenuLabel className={`text-xs pt-2 ${theme === 'dark' ? 'text-gray-400' : ''}`}>Theme</DropdownMenuLabel>
-        <DropdownMenuItem 
-          onClick={toggleTheme}
-          className={theme === 'dark' ? 'text-gray-300' : ''}
-        >
-          {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

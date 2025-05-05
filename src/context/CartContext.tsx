@@ -1,7 +1,6 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { CartItem, Product } from '../types';
-import { toast } from '@/components/ui/sonner';
+import { useToast } from '@/components/ui/use-toast';
 
 interface CartContextType {
   items: CartItem[];
@@ -25,6 +24,7 @@ export const useCart = () => {
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Load cart from localStorage on initialization
@@ -50,7 +50,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Cart updated",
           description: `${product.name} quantity updated in your cart`,
-          route: '/cart',
         });
         return updatedItems;
       } else {
@@ -58,7 +57,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Added to cart",
           description: `${product.name} added to your cart`,
-          route: '/cart',
         });
         return [...prevItems, { product, quantity }];
       }
@@ -71,7 +69,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Removed from cart",
         description: "Item removed from your cart",
-        route: '/cart',
       });
       return updatedItems;
     });
@@ -95,7 +92,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast({
       title: "Cart cleared",
       description: "All items have been removed from your cart",
-      route: '/cart',
     });
   };
 
