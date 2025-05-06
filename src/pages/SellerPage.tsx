@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -858,4 +859,501 @@ const SellerPage = () => {
                   )}
                 </div>
               ) : (
-                <div className="
+                <div className="text-center py-8">
+                  <UserX size={48} className="mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium mb-2">No Application Found</h3>
+                  <p className="text-gray-500 mb-4">You haven't submitted a seller application yet.</p>
+                  <Button onClick={() => setActiveTab('register')}>Register as Seller</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="requests" className="animate-fade-in">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Seller Requests ({pendingSellerRequests.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pendingSellerRequests.length > 0 ? (
+                <div className="space-y-6">
+                  {pendingSellerRequests.map((request) => (
+                    <div key={request.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{request.storeDetails?.name}</h3>
+                          <p className="text-sm text-gray-500">{request.name}</p>
+                        </div>
+                        <div className="flex items-center">
+                          {request.sellerVerified ? (
+                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center mr-2">
+                              <Check size={12} className="mr-1" /> Email Verified
+                            </span>
+                          ) : (
+                            <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center mr-2">
+                              <X size={12} className="mr-1" /> Email Not Verified
+                            </span>
+                          )}
+                          {request.sellerIdentityVerified ? (
+                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
+                              <Check size={12} className="mr-1" /> Identity Verified
+                            </span>
+                          ) : (
+                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center">
+                              <Shield size={12} className="mr-1" /> Identity Pending
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Store Details:</p>
+                          <p className="text-sm text-gray-500">{request.storeDetails?.description}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Contact Information:</p>
+                          <p className="text-sm text-gray-500 flex items-center">
+                            <Phone size={14} className="mr-2 text-gray-400" />
+                            {request.sellerPhone || 'Not provided'}
+                          </p>
+                          <p className="text-sm text-gray-500 flex items-center">
+                            <Mail size={14} className="mr-2 text-gray-400" />
+                            {request.sellerEmail || request.email}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <p className="text-xs text-gray-500">Request date: {new Date(request.sellerRequestDate || '').toLocaleDateString()}</p>
+                      </div>
+                      
+                      <div className="mt-4 flex gap-2">
+                        {!request.sellerIdentityVerified && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleVerifyIdentity(request.id)}
+                          >
+                            <Shield size={14} className="mr-1" />
+                            Verify Identity
+                          </Button>
+                        )}
+                        
+                        <Button 
+                          size="sm" 
+                          variant="default"
+                          onClick={() => handleApproveSeller(request.id)}
+                          disabled={!request.sellerVerified || !request.sellerIdentityVerified}
+                        >
+                          <Check size={14} className="mr-1" />
+                          Approve
+                        </Button>
+                        
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleRejectSeller(request.id)}
+                        >
+                          <X size={14} className="mr-1" />
+                          Reject
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <CheckCircle size={48} className="mx-auto mb-4 text-green-500" />
+                  <h3 className="text-lg font-medium mb-2">No Pending Requests</h3>
+                  <p className="text-gray-500">There are no pending seller requests at this time.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="dashboard" className="animate-fade-in">
+          {renderSellerContent()}
+        </TabsContent>
+        
+        <TabsContent value="products" className="animate-fade-in">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Your Products</CardTitle>
+              <Button onClick={() => form.reset()}>
+                <Plus size={16} className="mr-1" />
+                Add Product
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onProductSubmit)} className="space-y-4 mb-6 border-b pb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Product Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="e.g. Wireless Headphones" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price ({currencySymbol})</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" step="0.01" min="0" placeholder="0.00" />
+                          </FormControl>
+                          <FormMessage />
+                          {isVendorArexOriginal ? (
+                            <p className="text-xs text-green-600">No commission (AREXORIGINAL vendor)</p>
+                          ) : (
+                            <p className="text-xs text-gray-500">
+                              Commission: {currencySymbol}{calculateCommission(form.getValues('price')).toFixed(2)} (5%)
+                            </p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="e.g. Electronics" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="brand"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Brand</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="e.g. SoundMaster" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} placeholder="Describe your product in detail" rows={4} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="inventory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Inventory</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="number" min="0" step="1" placeholder="0" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="space-y-2">
+                    <Label>Product Images</Label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {imagePreviewUrls.map((url, index) => (
+                        <div key={index} className="relative group border rounded-md h-20 w-20 overflow-hidden">
+                          <img src={url} alt={`Preview ${index}`} className="h-full w-full object-cover" />
+                          <div 
+                            className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                            onClick={() => removeProductImage(index)}
+                          >
+                            <X className="text-white cursor-pointer" size={16} />
+                          </div>
+                        </div>
+                      ))}
+                      <div className="border border-dashed rounded-md h-20 w-20 flex items-center justify-center bg-gray-50">
+                        <Input
+                          id="product-images"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProductImagesChange}
+                          className="hidden"
+                          multiple
+                        />
+                        <Label 
+                          htmlFor="product-images" 
+                          className="flex flex-col items-center justify-center cursor-pointer h-full w-full"
+                        >
+                          <Plus size={16} className="mb-1 text-gray-400" />
+                          <span className="text-xs text-gray-400">Add</span>
+                        </Label>
+                      </div>
+                    </div>
+                    {productImages.length === 0 && (
+                      <p className="text-xs text-red-500">Please upload at least one product image</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Specifications</Label>
+                    {specifications.map((spec, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input 
+                          placeholder="Name (e.g. Weight)" 
+                          value={spec.key}
+                          onChange={(e) => updateSpecification(index, e.target.value, spec.value)}
+                          className="flex-1"
+                        />
+                        <Input 
+                          placeholder="Value (e.g. 500g)" 
+                          value={spec.value}
+                          onChange={(e) => updateSpecification(index, spec.key, e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => removeSpecification(index)}
+                          disabled={specifications.length <= 1}
+                        >
+                          <X size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addSpecification}
+                      className="w-full mt-2"
+                    >
+                      <Plus size={16} className="mr-1" />
+                      Add Specification
+                    </Button>
+                  </div>
+                  
+                  <Button type="submit" className="w-full">Add Product</Button>
+                </form>
+                
+                <div className="mt-8">
+                  <h3 className="font-medium mb-4">Your Listed Products ({products.length})</h3>
+                  {products.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {products.map(product => (
+                        <div key={product.id} className="border rounded-md p-4 flex gap-4">
+                          <div className="h-16 w-16 bg-gray-100 rounded overflow-hidden">
+                            <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium">{product.name}</h4>
+                            <p className="text-sm text-gray-500 line-clamp-1">{product.description}</p>
+                            <div className="flex justify-between items-center mt-2">
+                              <span className="font-medium">{currencySymbol}{product.price.toFixed(2)}</span>
+                              <span className="text-sm text-gray-500">Stock: {product.inventory}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Package size={48} className="mx-auto mb-4 text-gray-400" />
+                      <p className="text-gray-500">You haven't added any products yet</p>
+                    </div>
+                  )}
+                </div>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="orders" className="animate-fade-in">
+          <Card>
+            <CardHeader>
+              <CardTitle>Manage Orders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {orders.length > 0 ? (
+                <div className="space-y-4">
+                  {orders.map(order => (
+                    <div key={order.id} className="border rounded-md p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium">Order #{order.id}</h4>
+                          <p className="text-sm text-gray-500">{order.productName}</p>
+                        </div>
+                        <div>
+                          {order.status === 'pending' ? (
+                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Pending</span>
+                          ) : order.status === 'processing' ? (
+                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Processing</span>
+                          ) : order.status === 'shipped' ? (
+                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Shipped</span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-500">
+                        <p>Customer: {order.customer}</p>
+                        <p>Date: {order.date}</p>
+                      </div>
+                      <div className="mt-4 flex justify-end">
+                        {!order.delivered && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setSelectedOrderId(order.id)}
+                          >
+                            <Truck size={14} className="mr-1" />
+                            Mark as Shipped
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {selectedOrderId === order.id && (
+                        <div className="mt-4 bg-gray-50 p-4 rounded-md">
+                          <h5 className="font-medium text-sm mb-2">Confirm Delivery</h5>
+                          <p className="text-sm text-gray-500 mb-4">Are you sure you want to mark this order as shipped?</p>
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => setSelectedOrderId(null)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="default"
+                              onClick={() => confirmDelivery(order.id)}
+                            >
+                              Confirm
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText size={48} className="mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-500">You don't have any orders yet</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="settings" className="animate-fade-in">
+          <Card>
+            <CardHeader>
+              <CardTitle>Seller Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h3 className="font-medium">Commission Rate</h3>
+                  <div className="bg-gray-50 p-4 rounded-md">
+                    {isVendorArexOriginal ? (
+                      <p className="text-green-600 font-medium">You are an AREXORIGINAL vendor and exempt from commission fees.</p>
+                    ) : (
+                      <p>Your current commission rate: <span className="font-medium">5%</span></p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">Store Information</h3>
+                  <div className="bg-gray-50 p-4 rounded-md">
+                    <div className="space-y-1">
+                      <p><span className="font-medium">Store name:</span> {user?.storeDetails?.name}</p>
+                      <p><span className="font-medium">Description:</span> {user?.storeDetails?.description}</p>
+                    </div>
+                    <Button className="mt-4" variant="outline" size="sm">
+                      <img src={user?.storeDetails?.logo || '/placeholder.svg'} alt="Logo" className="h-4 w-4 mr-2" />
+                      Update Store Logo
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">Contact Information</h3>
+                  <div className="bg-gray-50 p-4 rounded-md space-y-2">
+                    <div className="flex justify-between">
+                      <p><span className="font-medium">Email:</span> {user?.sellerEmail || user?.email}</p>
+                      <Button variant="link" size="sm" className="h-auto p-0">Update</Button>
+                    </div>
+                    <div className="flex justify-between">
+                      <p><span className="font-medium">Phone:</span> {user?.sellerPhone || user?.phone}</p>
+                      <Button variant="link" size="sm" className="h-auto p-0">Update</Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">Verification Status</h3>
+                  <div className="bg-gray-50 p-4 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Email:</span> 
+                      {user?.sellerVerified ? (
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
+                          <Check size={12} className="mr-1" /> Verified
+                        </span>
+                      ) : (
+                        <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center">
+                          <X size={12} className="mr-1" /> Not Verified
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="font-medium">Identity:</span> 
+                      {user?.sellerIdentityVerified ? (
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
+                          <Check size={12} className="mr-1" /> Verified
+                        </span>
+                      ) : (
+                        <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center">
+                          <Clock size={12} className="mr-1" /> Pending
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default SellerPage;
