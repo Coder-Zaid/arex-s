@@ -9,7 +9,7 @@ import { useAppSettings } from '@/context/AppSettingsContext';
 const OrderConfirmationPage = () => {
   const navigate = useNavigate();
   const { orders } = useOrder();
-  const { currency, currencySymbol, language, translations } = useAppSettings();
+  const { currency, currencySymbol, language, translations, convertPrice } = useAppSettings();
   const t = translations[language];
   
   // Redirect if there are no orders
@@ -34,17 +34,8 @@ const OrderConfirmationPage = () => {
     return num.toFixed(2);
   };
   
-  // Apply exchange rate for currencies (approximate USD:SAR ratio)
-  const adjustCurrency = (amount: number) => {
-    if (currency === 'USD' && latestOrder.currency === 'SAR') {
-      return amount / 3.75; // Convert from SAR to USD
-    } else if (currency === 'SAR' && latestOrder.currency === 'USD') {
-      return amount * 3.75; // Convert from USD to SAR
-    }
-    return amount;
-  };
-  
-  const totalAmount = adjustCurrency(latestOrder.totalAmount);
+  // Convert the order amount to the current currency
+  const totalAmount = convertPrice(latestOrder.totalAmount, latestOrder.currency);
   
   return (
     <div className="p-4 flex flex-col items-center justify-center min-h-[80vh]">

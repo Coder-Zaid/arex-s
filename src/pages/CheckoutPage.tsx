@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,7 @@ const CheckoutPage = () => {
   const { user, isAuthenticated } = useAuth();
   const { createOrder } = useOrder();
   const { toast } = useToast();
-  const { currency, currencySymbol, language, translations } = useAppSettings();
+  const { currency, currencySymbol, language, translations, convertPrice } = useAppSettings();
   const t = translations[language];
   
   // Default form values
@@ -84,25 +83,21 @@ const CheckoutPage = () => {
     }
   };
   
-  // Apply exchange rate for currencies (approximate USD:SAR ratio)
-  const getExchangeRate = () => currency === 'USD' ? 1 : 3.75;  // 1 USD ≈ 3.75 SAR
-  
-  // Format number based on language and apply exchange rate
+  // Format number based on language
   const formatNumber = (num: number) => {
-    const exchangeRate = getExchangeRate();
-    const convertedAmount = num * exchangeRate;
-    
     if (language === 'ar') {
       // Convert to Arabic numerals
-      return convertedAmount.toFixed(2).replace(/\d/g, (d) => 
+      return num.toFixed(2).replace(/\d/g, (d) => 
         String.fromCharCode(1632 + parseInt(d)));
     }
-    return convertedAmount.toFixed(2);
+    return num.toFixed(2);
   };
   
   const subtotal = getTotalPrice();
-  const shipping = currency === 'USD' ? 5.99 : 22.46; // Roughly 5.99 USD ≈ 22.46 SAR
-  const tax = subtotal * 0.05;
+  // Define fixed shipping costs in SAR and convert based on currency
+  const shippingInSAR = 22.46; 
+  const shipping = convertPrice(shippingInSAR, 'SAR');
+  const tax = subtotal * 0.05; // 5% tax
   const total = subtotal + shipping + tax;
   
   return (

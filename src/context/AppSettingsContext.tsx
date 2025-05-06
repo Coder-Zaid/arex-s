@@ -170,18 +170,21 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const currencySymbol = currencySymbols[currency as keyof typeof currencySymbols] || 'ر.س';
   const isRtl = language === 'ar';
   
-  // Function to convert price between currencies
+  // Improved function to convert price between currencies
   const convertPrice = (price: number, fromCurrency: string = 'SAR'): number => {
     // If the source and target currencies are the same, return the original price
     if (fromCurrency === currency) return price;
     
-    // Convert to SAR first (as our base currency)
+    // First convert to SAR (our base currency)
     const priceInSAR = fromCurrency === 'SAR' 
       ? price 
       : price / conversionRates[fromCurrency];
     
     // Then convert from SAR to the target currency
-    return Number((priceInSAR * conversionRates[currency]).toFixed(2));
+    const convertedPrice = priceInSAR * conversionRates[currency];
+    
+    // Return with 2 decimal places
+    return Number(convertedPrice.toFixed(2));
   };
   
   // Function to detect user location and set appropriate currency
