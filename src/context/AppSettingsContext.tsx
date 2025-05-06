@@ -52,6 +52,14 @@ export const currencySymbols: { [key: string]: string } = {
   SAR: 'ر.س',
 };
 
+// Define conversion rates from SAR (Saudi Riyal)
+const conversionRates: { [key: string]: number } = {
+  SAR: 1,
+  USD: 0.267, // 1 SAR = 0.267 USD
+  EUR: 0.25,  // 1 SAR = 0.25 EUR
+  GBP: 0.21,  // 1 SAR = 0.21 GBP
+};
+
 interface AppSettingsContextType {
   language: string;
   setLanguage: (language: string) => void;
@@ -62,6 +70,7 @@ interface AppSettingsContextType {
   translations: Translations;
   isRtl: boolean;
   detectUserLocation: () => void;
+  convertPrice: (price: number, fromCurrency?: string) => number;
 }
 
 const translations: Translations = {
@@ -156,10 +165,24 @@ export const useAppSettings = () => {
 };
 
 export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<string>('en');
-  const [currency, setCurrency] = useState<string>('USD');
-  const currencySymbol = currencySymbols[currency as keyof typeof currencySymbols] || '$';
+  const [language, setLanguage] = useState<string>('ar');
+  const [currency, setCurrency] = useState<string>('SAR');
+  const currencySymbol = currencySymbols[currency as keyof typeof currencySymbols] || 'ر.س';
   const isRtl = language === 'ar';
+  
+  // Function to convert price between currencies
+  const convertPrice = (price: number, fromCurrency: string = 'SAR'): number => {
+    // If the source and target currencies are the same, return the original price
+    if (fromCurrency === currency) return price;
+    
+    // Convert to SAR first (as our base currency)
+    const priceInSAR = fromCurrency === 'SAR' 
+      ? price 
+      : price / conversionRates[fromCurrency];
+    
+    // Then convert from SAR to the target currency
+    return Number((priceInSAR * conversionRates[currency]).toFixed(2));
+  };
   
   // Function to detect user location and set appropriate currency
   const detectUserLocation = () => {
@@ -188,6 +211,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
     
     if (storedCurrency) {
       setCurrency(storedCurrency);
+    } else {
+      // Set default currency to SAR if not set
+      setCurrency('SAR');
     }
   }, []);
   
@@ -208,7 +234,8 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         currencySymbols,
         translations,
         isRtl,
-        detectUserLocation
+        detectUserLocation,
+        convertPrice
       }}
     >
       {children}
