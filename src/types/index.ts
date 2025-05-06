@@ -20,6 +20,7 @@ export interface Product {
   price: number;
   oldPrice?: number;
   image: string;
+  images?: string[];
   category: string;
   brand: string;
   rating: number;
@@ -29,6 +30,7 @@ export interface Product {
   onSale?: boolean;
   sellerId?: string;
   inventory?: number;
+  specifications?: {key: string; value: string}[];
 }
 
 export interface CartItem {
@@ -51,6 +53,16 @@ export interface Order {
   trackingNumber?: string;
   sellerId?: string;
   buyerId?: string;
+}
+
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  date: string;
 }
 
 export interface Banner {

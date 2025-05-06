@@ -1,176 +1,166 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type CurrencyType = 'USD' | 'SAR';
-type LanguageType = 'en' | 'ar';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
-interface AppSettingsContextType {
-  currency: CurrencyType;
-  language: LanguageType;
-  setCurrency: (currency: CurrencyType) => void;
-  setLanguage: (language: LanguageType) => void;
-  currencySymbol: string;
-  isRtl: boolean;
-  translations: Record<string, Record<string, string>>;
-  detectUserLocation: () => void;
+// Define translation type
+interface Translations {
+  [key: string]: {
+    home: string;
+    search: string;
+    wishlist: string;
+    cart: string;
+    orders: string;
+    seller: string;
+    profile: string;
+    settings: string;
+    language: string;
+    theme: string;
+    about: string;
+    logout: string;
+    login: string;
+    register: string;
+    addToCart: string;
+    addToWishlist: string;
+    removeFromWishlist: string;
+    checkout: string;
+    orderConfirmation: string;
+    orderDetails: string;
+    orderHistory: string;
+    emptyCart: string;
+    emptyWishlist: string;
+    emptyOrders: string;
+    productDetails: string;
+    relatedProducts: string;
+    reviews: string;
+    specifications: string;
+  };
 }
 
-const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
+interface AppSettingsContextType {
+  language: string;
+  setLanguage: (language: string) => void;
+  currency: string;
+  setCurrency: (currency: string) => void;
+  currencySymbol: string;
+  translations: Translations;
+}
 
-export const currencySymbols = {
-  USD: '$',
-  SAR: 'ر.س'
-};
-
-// Add translations for Arabic and English
-export const translations = {
+const translations: Translations = {
   en: {
-    home: "Home",
-    search: "Search",
-    wishlist: "Wishlist",
-    cart: "Cart",
-    orders: "Orders",
-    seller: "Seller",
-    about: "About",
-    featuredProducts: "Featured Products",
-    newArrivals: "New Arrivals",
-    flashDeals: "Flash Deals",
-    browseCategories: "Browse Categories",
-    viewAll: "View all",
-    addToCart: "Add to Cart",
-    cashOnDelivery: "Cash on Delivery",
-    cardPayment: "Credit/Debit Card",
-    placeOrder: "Place Order",
-    searchProducts: "Search products...",
-    results: "results",
-    noProductsFound: "No products found",
-    clearSearch: "Clear search",
-    seller: "Seller",
-    orders: "Orders",
-    support: "Support",
-    noOrders: "No orders have been placed yet",
-    feedback: "Feedback",
-    reviews: "Reviews",
-    writeReview: "Write a Review",
-    submitReview: "Submit Review",
-    yourReview: "Your Review",
-    rating: "Rating",
+    home: 'Home',
+    search: 'Search',
+    wishlist: 'Wishlist',
+    cart: 'Cart',
+    orders: 'Orders',
+    seller: 'Seller',
+    profile: 'Profile',
+    settings: 'Settings',
+    language: 'Language',
+    theme: 'Theme',
+    about: 'About',
+    logout: 'Logout',
+    login: 'Login',
+    register: 'Register',
+    addToCart: 'Add to Cart',
+    addToWishlist: 'Add to Wishlist',
+    removeFromWishlist: 'Remove from Wishlist',
+    checkout: 'Checkout',
+    orderConfirmation: 'Order Confirmation',
+    orderDetails: 'Order Details',
+    orderHistory: 'Order History',
+    emptyCart: 'Your cart is empty',
+    emptyWishlist: 'Your wishlist is empty',
+    emptyOrders: 'No orders have been placed yet',
+    productDetails: 'Product Details',
+    relatedProducts: 'Related Products',
+    reviews: 'Reviews',
+    specifications: 'Specifications'
   },
   ar: {
-    home: "الرئيسية",
-    search: "بحث",
-    wishlist: "المفضلة",
-    cart: "السلة",
-    orders: "الطلبات",
-    seller: "البائع",
-    about: "عن الشركة",
-    featuredProducts: "المنتجات المميزة",
-    newArrivals: "وصل حديثا",
-    flashDeals: "عروض سريعة",
-    browseCategories: "تصفح الفئات",
-    viewAll: "عرض الكل",
-    addToCart: "أضف إلى السلة",
-    cashOnDelivery: "الدفع عند الاستلام",
-    cardPayment: "بطاقة ائتمان/خصم",
-    placeOrder: "إتمام الطلب",
-    searchProducts: "البحث عن المنتجات...",
-    results: "نتائج",
-    noProductsFound: "لا توجد منتجات",
-    clearSearch: "مسح البحث",
-    seller: "البائع",
-    orders: "الطلبات",
-    support: "الدعم",
-    noOrders: "لم يتم وضع أي طلبات بعد",
-    feedback: "ردود الفعل",
-    reviews: "المراجعات",
-    writeReview: "اكتب مراجعة",
-    submitReview: "إرسال المراجعة",
-    yourReview: "مراجعتك",
-    rating: "تقييم",
+    home: 'الرئيسية',
+    search: 'بحث',
+    wishlist: 'المفضلة',
+    cart: 'السلة',
+    orders: 'الطلبات',
+    seller: 'البائع',
+    profile: 'الملف الشخصي',
+    settings: 'الإعدادات',
+    language: 'اللغة',
+    theme: 'المظهر',
+    about: 'حول',
+    logout: 'تسجيل الخروج',
+    login: 'تسجيل الدخول',
+    register: 'تسجيل',
+    addToCart: 'أضف إلى السلة',
+    addToWishlist: 'أضف إلى المفضلة',
+    removeFromWishlist: 'إزالة من المفضلة',
+    checkout: 'الدفع',
+    orderConfirmation: 'تأكيد الطلب',
+    orderDetails: 'تفاصيل الطلب',
+    orderHistory: 'سجل الطلبات',
+    emptyCart: 'سلة التسوق فارغة',
+    emptyWishlist: 'قائمة المفضلة فارغة',
+    emptyOrders: 'لم يتم تقديم أي طلبات بعد',
+    productDetails: 'تفاصيل المنتج',
+    relatedProducts: 'منتجات ذات صلة',
+    reviews: 'التقييمات',
+    specifications: 'المواصفات'
   }
 };
 
-export const AppSettingsProvider = ({ children }: { children: React.ReactNode }) => {
-  const [currency, setCurrency] = useState<CurrencyType>('USD');
-  const [language, setLanguage] = useState<LanguageType>('en');
+const currencySymbols = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  SAR: 'ر.س',
+};
 
+const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
+
+export const useAppSettings = () => {
+  const context = useContext(AppSettingsContext);
+  if (!context) {
+    throw new Error('useAppSettings must be used within an AppSettingsProvider');
+  }
+  return context;
+};
+
+export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguage] = useState<string>('en');
+  const [currency, setCurrency] = useState<string>('USD');
+  const currencySymbol = currencySymbols[currency as keyof typeof currencySymbols] || '$';
+  
   useEffect(() => {
-    // Load saved settings from localStorage if available
-    const savedCurrency = localStorage.getItem('currency') as CurrencyType;
-    const savedLanguage = localStorage.getItem('language') as LanguageType;
+    // Load settings from localStorage
+    const storedLanguage = localStorage.getItem('language');
+    const storedCurrency = localStorage.getItem('currency');
     
-    if (savedCurrency && (savedCurrency === 'USD' || savedCurrency === 'SAR')) {
-      setCurrency(savedCurrency);
-    } else {
-      // Use default currency if not found in localStorage
-      detectUserLocation();
+    if (storedLanguage) {
+      setLanguage(storedLanguage);
     }
     
-    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ar')) {
-      setLanguage(savedLanguage);
-      document.documentElement.dir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
-      document.documentElement.lang = savedLanguage;
+    if (storedCurrency) {
+      setCurrency(storedCurrency);
     }
   }, []);
-
-  const detectUserLocation = () => {
-    // This is a simple implementation that could be expanded with actual geolocation
-    try {
-      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      console.log('Detected timezone:', userTimeZone);
-      
-      // Very basic region detection - could be expanded with a proper geolocation service
-      if (userTimeZone.includes('Asia/Riyadh') || 
-          userTimeZone.includes('Asia/Dubai') || 
-          userTimeZone.includes('Asia/Qatar')) {
-        handleSetCurrency('SAR');
-      } else {
-        handleSetCurrency('USD');
-      }
-    } catch (error) {
-      console.error('Error detecting location:', error);
-      // Default to USD if detection fails
-      handleSetCurrency('USD');
-    }
-  };
-
-  const handleSetCurrency = (newCurrency: CurrencyType) => {
-    setCurrency(newCurrency);
-    localStorage.setItem('currency', newCurrency);
-  };
-
-  const handleSetLanguage = (newLanguage: LanguageType) => {
-    setLanguage(newLanguage);
-    localStorage.setItem('language', newLanguage);
-    
-    // Set RTL direction for Arabic
-    document.documentElement.dir = newLanguage === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = newLanguage;
-  };
-
-  const isRtl = language === 'ar';
-
+  
+  useEffect(() => {
+    // Save settings to localStorage when they change
+    localStorage.setItem('language', language);
+    localStorage.setItem('currency', currency);
+  }, [language, currency]);
+  
   return (
     <AppSettingsContext.Provider 
       value={{ 
-        currency, 
         language, 
-        setCurrency: handleSetCurrency, 
-        setLanguage: handleSetLanguage,
-        currencySymbol: currencySymbols[currency],
-        isRtl,
-        translations,
-        detectUserLocation
+        setLanguage, 
+        currency, 
+        setCurrency,
+        currencySymbol,
+        translations
       }}
     >
       {children}
     </AppSettingsContext.Provider>
   );
-};
-
-export const useAppSettings = () => {
-  const context = useContext(AppSettingsContext);
-  if (context === undefined) {
-    throw new Error('useAppSettings must be used within an AppSettingsProvider');
-  }
-  return context;
 };
