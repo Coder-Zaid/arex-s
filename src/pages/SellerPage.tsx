@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Store, Upload, Image, CheckCircle, Package, Truck, DollarSign, Tag, ListChecks, FileText } from 'lucide-react';
+import { Store, Upload, Image, CheckCircle, Package, Truck, DollarSign, Tag, ListChecks, FileText, Plus } from 'lucide-react';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -195,14 +194,20 @@ const SellerPage = () => {
     
     // Simulate API call
     setTimeout(() => {
-      const newProduct = {
+      const newProduct: Product = {
         id: `seller-${Date.now()}`,
         ...data,
         image: URL.createObjectURL(productImages[0]),
         rating: 0,
         inStock: true,
-        sellerId: user?.id,
-        images: imagePreviewUrls
+        sellerId: user?.id || '',
+        images: imagePreviewUrls,
+        // Make sure all required fields have values
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        brand: data.brand
       };
       
       setProducts([newProduct, ...products]);

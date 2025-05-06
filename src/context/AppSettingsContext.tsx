@@ -28,12 +28,29 @@ interface Translations {
     emptyCart: string;
     emptyWishlist: string;
     emptyOrders: string;
+    noOrders: string;
     productDetails: string;
     relatedProducts: string;
     reviews: string;
     specifications: string;
+    featuredProducts: string;
+    newArrivals: string;
+    flashDeals: string;
+    viewAll: string;
+    browseCategories: string;
+    cashOnDelivery: string;
+    cardPayment: string;
+    placeOrder: string;
   };
 }
+
+// Export currency symbols so they can be imported elsewhere
+export const currencySymbols = {
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  SAR: 'ر.س',
+};
 
 interface AppSettingsContextType {
   language: string;
@@ -42,6 +59,8 @@ interface AppSettingsContextType {
   setCurrency: (currency: string) => void;
   currencySymbol: string;
   translations: Translations;
+  isRtl: boolean;
+  detectUserLocation: () => void;
 }
 
 const translations: Translations = {
@@ -70,10 +89,19 @@ const translations: Translations = {
     emptyCart: 'Your cart is empty',
     emptyWishlist: 'Your wishlist is empty',
     emptyOrders: 'No orders have been placed yet',
+    noOrders: 'No orders have been placed yet',
     productDetails: 'Product Details',
     relatedProducts: 'Related Products',
     reviews: 'Reviews',
-    specifications: 'Specifications'
+    specifications: 'Specifications',
+    featuredProducts: 'Featured Products',
+    newArrivals: 'New Arrivals',
+    flashDeals: 'Flash Deals',
+    viewAll: 'View All',
+    browseCategories: 'Browse Categories',
+    cashOnDelivery: 'Cash on Delivery',
+    cardPayment: 'Card Payment',
+    placeOrder: 'Place Order'
   },
   ar: {
     home: 'الرئيسية',
@@ -100,18 +128,20 @@ const translations: Translations = {
     emptyCart: 'سلة التسوق فارغة',
     emptyWishlist: 'قائمة المفضلة فارغة',
     emptyOrders: 'لم يتم تقديم أي طلبات بعد',
+    noOrders: 'لم يتم تقديم أي طلبات بعد',
     productDetails: 'تفاصيل المنتج',
     relatedProducts: 'منتجات ذات صلة',
     reviews: 'التقييمات',
-    specifications: 'المواصفات'
+    specifications: 'المواصفات',
+    featuredProducts: 'منتجات مميزة',
+    newArrivals: 'وصل حديثاً',
+    flashDeals: 'عروض سريعة',
+    viewAll: 'عرض الكل',
+    browseCategories: 'تصفح الفئات',
+    cashOnDelivery: 'الدفع عند الاستلام',
+    cardPayment: 'الدفع بالبطاقة',
+    placeOrder: 'تأكيد الطلب'
   }
-};
-
-const currencySymbols = {
-  USD: '$',
-  EUR: '€',
-  GBP: '£',
-  SAR: 'ر.س',
 };
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(undefined);
@@ -128,6 +158,23 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [language, setLanguage] = useState<string>('en');
   const [currency, setCurrency] = useState<string>('USD');
   const currencySymbol = currencySymbols[currency as keyof typeof currencySymbols] || '$';
+  const isRtl = language === 'ar';
+  
+  // Function to detect user location and set appropriate currency
+  const detectUserLocation = () => {
+    // In a real application, you would use geolocation API or IP-based detection
+    // For now, let's simulate a location detection
+    setTimeout(() => {
+      const randomLocation = Math.random() > 0.5 ? 'US' : 'SA';
+      if (randomLocation === 'SA') {
+        setCurrency('SAR');
+        setLanguage('ar');
+      } else {
+        setCurrency('USD');
+        setLanguage('en');
+      }
+    }, 1000);
+  };
   
   useEffect(() => {
     // Load settings from localStorage
@@ -157,7 +204,9 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         currency, 
         setCurrency,
         currencySymbol,
-        translations
+        translations,
+        isRtl,
+        detectUserLocation
       }}
     >
       {children}
