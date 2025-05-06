@@ -45,7 +45,7 @@ interface Translations {
 }
 
 // Export currency symbols so they can be imported elsewhere
-export const currencySymbols = {
+export const currencySymbols: { [key: string]: string } = {
   USD: '$',
   EUR: '€',
   GBP: '£',
@@ -58,6 +58,7 @@ interface AppSettingsContextType {
   currency: string;
   setCurrency: (currency: string) => void;
   currencySymbol: string;
+  currencySymbols: { [key: string]: string };
   translations: Translations;
   isRtl: boolean;
   detectUserLocation: () => void;
@@ -204,6 +205,7 @@ export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ c
         currency, 
         setCurrency,
         currencySymbol,
+        currencySymbols,
         translations,
         isRtl,
         detectUserLocation

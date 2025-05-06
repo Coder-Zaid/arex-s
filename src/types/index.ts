@@ -6,6 +6,9 @@ export interface User {
   address?: string;
   phone?: string;
   isSeller?: boolean;
+  sellerVerified?: boolean;
+  sellerApproved?: boolean;
+  sellerRequestDate?: string;
   storeDetails?: {
     name: string;
     description: string;
