@@ -9,6 +9,11 @@ export interface User {
   sellerVerified?: boolean;
   sellerApproved?: boolean;
   sellerRequestDate?: string;
+  sellerPhone?: string; // Added for seller phone number
+  sellerEmail?: string; // Added for seller email
+  sellerIdentityVerified?: boolean; // Added for identity verification
+  sellerAge?: number; // Added for age verification
+  sellerIdentityDoc?: string; // Added for identity document
   storeDetails?: {
     name: string;
     description: string;

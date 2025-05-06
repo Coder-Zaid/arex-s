@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User } from '../types';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,10 +9,23 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
-  requestSellerAccount: (storeName: string, storeDescription: string, logo?: File) => Promise<void>;
+  requestSellerAccount: (
+    storeName: string, 
+    storeDescription: string, 
+    sellerPhone: string,
+    sellerEmail: string,
+    sellerAge: number,
+    identityDoc?: File,
+    logo?: File
+  ) => Promise<void>;
   approveSellerRequest: (userId: string) => Promise<void>;
   rejectSellerRequest: (userId: string) => Promise<void>;
   pendingSellerRequests: User[];
+  verifySellerIdentity: (userId: string) => Promise<void>;
+  verifySellerEmail: (code: string) => Promise<boolean>;
+  resendVerificationCode: () => Promise<void>;
+  ownerEmail: string;
+  ownerPhone: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,10 +48,10 @@ const mockUsers: User[] = [
   },
   {
     id: 'admin1',
-    email: 'admin@example.com',
+    email: 'arex.ksa@gmail.com', // Updated owner email
     name: 'Admin User',
     address: '456 Admin Street',
-    phone: '987-654-3210',
+    phone: '+966509738173', // Updated owner phone
     isSeller: true,
     sellerVerified: true,
     sellerApproved: true
@@ -51,6 +63,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [pendingSellerRequests, setPendingSellerRequests] = useState<User[]>([]);
   const { toast } = useToast();
+  const ownerEmail = 'arex.ksa@gmail.com'; // Owner email
+  const ownerPhone = '+966509738173'; // Owner phone
 
   useEffect(() => {
     // Check if user is stored in localStorage
@@ -113,7 +127,126 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user');
   };
 
-  const requestSellerAccount = async (storeName: string, storeDescription: string, logo?: File) => {
+  const verifySellerEmail = async (code: string): Promise<boolean> => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login before verifying your email",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    // Simulate API request delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const storedCode = localStorage.getItem('verificationCode');
+    
+    if (code === storedCode) {
+      // Update the user's verification status
+      const updatedUser = {
+        ...user,
+        sellerVerified: true
+      };
+      
+      // Update in mock users
+      const userIndex = mockUsers.findIndex(u => u.id === user.id);
+      if (userIndex !== -1) {
+        mockUsers[userIndex] = updatedUser;
+      }
+      
+      // Update current user state
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Also update in pending requests if present
+      const updatedRequests = pendingSellerRequests.map(req => 
+        req.id === user.id ? {...req, sellerVerified: true} : req
+      );
+      setPendingSellerRequests(updatedRequests);
+      localStorage.setItem('pendingSellerRequests', JSON.stringify(updatedRequests));
+      
+      return true;
+    }
+    
+    return false;
+  };
+
+  const resendVerificationCode = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login before requesting verification",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Generate a new verification code
+    const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    localStorage.setItem('verificationCode', randomCode);
+    
+    toast({
+      title: "Verification code sent",
+      description: `A new verification code has been sent to your email. (For demo: ${randomCode})`,
+    });
+  };
+
+  const verifySellerIdentity = async (userId: string) => {
+    if (!user?.sellerApproved) {
+      toast({
+        title: "Permission denied",
+        description: "You don't have permission to verify seller identity",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Find the user
+    const sellerUser = pendingSellerRequests.find(req => req.id === userId);
+    if (!sellerUser) {
+      toast({
+        title: "User not found",
+        description: "Could not find the seller to verify",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Update the user's identity verification status
+    const updatedUser = {
+      ...sellerUser,
+      sellerIdentityVerified: true
+    };
+    
+    // Update in mock users
+    const userIndex = mockUsers.findIndex(u => u.id === userId);
+    if (userIndex !== -1) {
+      mockUsers[userIndex] = updatedUser;
+    }
+    
+    // Update in pending requests
+    const updatedRequests = pendingSellerRequests.map(req => 
+      req.id === userId ? updatedUser : req
+    );
+    setPendingSellerRequests(updatedRequests);
+    localStorage.setItem('pendingSellerRequests', JSON.stringify(updatedRequests));
+    
+    toast({
+      title: "Identity verified",
+      description: "The seller's identity has been verified successfully",
+    });
+  };
+
+  const requestSellerAccount = async (
+    storeName: string, 
+    storeDescription: string, 
+    sellerPhone: string,
+    sellerEmail: string,
+    sellerAge: number,
+    identityDoc?: File,
+    logo?: File
+  ) => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -135,6 +268,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sellerVerified: false, 
         sellerApproved: false,
         sellerRequestDate: new Date().toISOString(),
+        sellerPhone: sellerPhone,
+        sellerEmail: sellerEmail,
+        sellerAge: sellerAge,
+        sellerIdentityVerified: false,
+        sellerIdentityDoc: identityDoc ? URL.createObjectURL(identityDoc) : undefined,
         storeDetails: {
           name: storeName,
           description: storeDescription,
@@ -157,9 +295,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
+      // Generate a verification code
+      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+      localStorage.setItem('verificationCode', randomCode);
+
       toast({
         title: "Request submitted",
-        description: "Your seller account request has been submitted for approval. Please check your email to verify your account.",
+        description: `Your seller account request has been submitted. Please verify your email using the code: ${randomCode}`,
       });
     } finally {
       setLoading(false);
@@ -282,7 +424,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestSellerAccount,
         approveSellerRequest,
         rejectSellerRequest,
-        pendingSellerRequests
+        pendingSellerRequests,
+        verifySellerIdentity,
+        verifySellerEmail,
+        resendVerificationCode,
+        ownerEmail,
+        ownerPhone
       }}
     >
       {children}

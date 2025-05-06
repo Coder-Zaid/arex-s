@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -28,7 +27,11 @@ import {
   Mail,
   UserX,
   Loader2,
-  Shield
+  Shield,
+  Phone,
+  Calendar,
+  FileCheck,
+  AlertCircle
 } from 'lucide-react';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -50,7 +53,19 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 const SellerPage = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, requestSellerAccount, approveSellerRequest, rejectSellerRequest, pendingSellerRequests } = useAuth();
+  const { 
+    user, 
+    isAuthenticated, 
+    requestSellerAccount, 
+    approveSellerRequest, 
+    rejectSellerRequest, 
+    pendingSellerRequests,
+    verifySellerEmail,
+    resendVerificationCode,
+    verifySellerIdentity,
+    ownerEmail,
+    ownerPhone
+  } = useAuth();
   const { toast } = useToast();
   const [storeName, setStoreName] = useState('');
   const [storeDescription, setStoreDescription] = useState('');
@@ -69,6 +84,10 @@ const SellerPage = () => {
   const [emailVerified, setEmailVerified] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [verifyingEmail, setVerifyingEmail] = useState(false);
+  const [sellerPhone, setSellerPhone] = useState('');
+  const [sellerEmail, setSellerEmail] = useState('');
+  const [sellerAge, setSellerAge] = useState<number>(18);
+  const [identityDoc, setIdentityDoc] = useState<File | null>(null);
   const { currencySymbol } = useAppSettings();
 
   const form = useForm<ProductFormValues>({
@@ -166,6 +185,12 @@ const SellerPage = () => {
     }
   };
 
+  const handleIdentityDocChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setIdentityDoc(e.target.files[0]);
+    }
+  };
+
   const handleProductImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -207,39 +232,55 @@ const SellerPage = () => {
 
   const handleStoreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Form validation
+    if (!storeName || !storeDescription || !sellerPhone || !sellerEmail || !sellerAge) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!identityDoc) {
+      toast({
+        title: "Missing document",
+        description: "Please upload your national identity document",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Submit seller request
-    requestSellerAccount(storeName, storeDescription, logoFile || undefined)
+    // Submit seller request with additional information
+    requestSellerAccount(
+      storeName, 
+      storeDescription, 
+      sellerPhone,
+      sellerEmail,
+      sellerAge,
+      identityDoc,
+      logoFile || undefined
+    )
       .then(() => {
         setIsSubmitting(false);
         // Switch to verification tab after registration
         setActiveTab('verification');
-        
-        // Generate a random verification code (in a real app, this would be sent via email)
-        const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-        console.log('Verification code:', randomCode); // For demo purposes only
-        localStorage.setItem('verificationCode', randomCode);
-        
-        toast({
-          title: "Verification email sent",
-          description: `Please check your email at ${user?.email} for the verification code. (For demo: ${randomCode})`,
-        });
       })
       .catch(() => {
         setIsSubmitting(false);
       });
   };
 
-  const handleVerifyEmail = () => {
+  const handleVerifyEmail = async () => {
     setVerifyingEmail(true);
     
-    // Simulate API verification delay
-    setTimeout(() => {
-      const storedCode = localStorage.getItem('verificationCode');
+    try {
+      const isVerified = await verifySellerEmail(verificationCode);
       
-      if (verificationCode === storedCode) {
-        // Update user's verification status
+      if (isVerified) {
         setEmailVerified(true);
         
         toast({
@@ -255,9 +296,9 @@ const SellerPage = () => {
           variant: "destructive"
         });
       }
-      
+    } finally {
       setVerifyingEmail(false);
-    }, 1000);
+    }
   };
   
   const handleApproveSeller = (sellerId: string) => {
@@ -266,6 +307,16 @@ const SellerPage = () => {
         toast({
           title: "Seller approved",
           description: "The seller account has been approved successfully.",
+        });
+      });
+  };
+  
+  const handleVerifyIdentity = (sellerId: string) => {
+    verifySellerIdentity(sellerId)
+      .then(() => {
+        toast({
+          title: "Identity verified",
+          description: "The seller's identity has been verified successfully.",
         });
       });
   };
@@ -496,7 +547,7 @@ const SellerPage = () => {
               {!user?.storeDetails ? (
                 <form onSubmit={handleStoreSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="store-name">Store Name</Label>
+                    <Label htmlFor="store-name">Store Name <span className="text-red-500">*</span></Label>
                     <Input 
                       id="store-name"
                       value={storeName}
@@ -507,7 +558,7 @@ const SellerPage = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="store-description">Store Description</Label>
+                    <Label htmlFor="store-description">Store Description <span className="text-red-500">*</span></Label>
                     <Textarea 
                       id="store-description"
                       value={storeDescription}
@@ -516,6 +567,80 @@ const SellerPage = () => {
                       rows={4}
                       required
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="seller-phone">Phone Number <span className="text-red-500">*</span></Label>
+                      <div className="relative">
+                        <Phone className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                        <Input
+                          id="seller-phone"
+                          value={sellerPhone}
+                          onChange={(e) => setSellerPhone(e.target.value)}
+                          placeholder="e.g. +966123456789"
+                          className="pl-8"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="seller-email">Email <span className="text-red-500">*</span></Label>
+                      <Input
+                        id="seller-email"
+                        type="email"
+                        value={sellerEmail}
+                        onChange={(e) => setSellerEmail(e.target.value)}
+                        placeholder="Your email for seller communications"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="seller-age">Age <span className="text-red-500">*</span></Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                        <Input
+                          id="seller-age"
+                          type="number"
+                          min="18"
+                          max="100"
+                          value={sellerAge}
+                          onChange={(e) => setSellerAge(parseInt(e.target.value))}
+                          className="pl-8"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="identity-doc">National Identity Document <span className="text-red-500">*</span></Label>
+                      <div className="flex flex-col">
+                        <Input
+                          id="identity-doc"
+                          type="file"
+                          onChange={handleIdentityDocChange}
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                        />
+                        <Label 
+                          htmlFor="identity-doc"
+                          className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-md cursor-pointer w-fit"
+                        >
+                          <FileCheck size={16} />
+                          {identityDoc ? identityDoc.name : 'Upload Document'}
+                        </Label>
+                        {!identityDoc && (
+                          <p className="text-xs text-red-500 mt-1">Please upload your national identity document</p>
+                        )}
+                        {identityDoc && (
+                          <p className="text-xs text-green-500 mt-1">Document uploaded</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -566,19 +691,45 @@ const SellerPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mt-4">
+                    <h3 className="flex items-center text-blue-700 font-medium mb-2">
+                      <AlertCircle size={16} className="mr-2" />
+                      Contact Information
+                    </h3>
+                    <p className="text-sm text-blue-700">For any questions or assistance with your seller application:</p>
+                    <div className="mt-2 text-sm">
+                      <p className="flex items-center mb-1">
+                        <Mail size={14} className="mr-2 text-blue-500" />
+                        {ownerEmail}
+                      </p>
+                      <p className="flex items-center">
+                        <Phone size={14} className="mr-2 text-blue-500" />
+                        {ownerPhone}
+                      </p>
+                    </div>
+                  </div>
                   
                   <Button 
                     type="submit" 
                     className="w-full bg-brand-blue hover:bg-brand-blue/90 mt-4"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Register as Seller'}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      'Register as Seller'
+                    )}
                   </Button>
 
                   <div className="text-xs text-gray-500 border-t pt-4 mt-4">
                     <p className="mb-2">By registering as a seller, you agree to our terms and conditions:</p>
                     <ul className="list-disc pl-5 space-y-1">
                       <li>You must verify your email address</li>
+                      <li>You must provide a valid national identity document</li>
                       <li>Your seller account will be reviewed by our team</li>
                       <li>You can only sell products once your account is approved</li>
                       <li>5% commission applies to all sales (exempt for AREXORIGINAL vendors)</li>
@@ -606,7 +757,7 @@ const SellerPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {emailVerified ? (
+              {emailVerified || user?.sellerVerified ? (
                 <div className="text-center py-8">
                   <CheckCircle size={48} className="mx-auto mb-4 text-green-500" />
                   <h3 className="text-lg font-medium mb-2">Email Verified Successfully</h3>
@@ -618,7 +769,7 @@ const SellerPage = () => {
                   <div className="text-center mb-6">
                     <Mail size={48} className="mx-auto mb-4 text-blue-500" />
                     <h3 className="text-lg font-medium mb-2">Verify Your Email Address</h3>
-                    <p className="text-gray-500">We've sent a verification code to your email address. Enter the code below to verify your email.</p>
+                    <p className="text-gray-500">We've sent a verification code to your email address ({user?.sellerEmail || user?.email}). Enter the code below to verify your email.</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -651,15 +802,7 @@ const SellerPage = () => {
                   </Button>
                   
                   <div className="text-center text-sm text-gray-500 mt-4">
-                    <p>Didn't receive a code? <Button variant="link" className="p-0 h-auto" onClick={() => {
-                      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-                      console.log('New verification code:', randomCode);
-                      localStorage.setItem('verificationCode', randomCode);
-                      toast({
-                        title: "New code sent",
-                        description: `A new verification code has been sent to your email. (For demo: ${randomCode})`,
-                      });
-                    }}>Resend Code</Button></p>
+                    <p>Didn't receive a code? <Button variant="link" className="p-0 h-auto" onClick={resendVerificationCode}>Resend Code</Button></p>
                   </div>
                 </div>
               )}
@@ -695,7 +838,19 @@ const SellerPage = () => {
                       <div className="bg-gray-50 p-4 rounded-lg mb-6 text-left">
                         <p className="text-sm font-medium">Application Details:</p>
                         <p className="text-sm text-gray-500">Store: {user.storeDetails.name}</p>
-                        <p className="text-sm text-gray-500">Email: {user.email} {emailVerified && <span className="text-green-500">(✓ Verified)</span>}</p>
+                        <p className="text-sm text-gray-500">Email: {user.sellerEmail || user.email} 
+                          {(user.sellerVerified || emailVerified) ? 
+                            <span className="text-green-500 ml-1">(✓ Verified)</span> : 
+                            <span className="text-red-500 ml-1">(Not Verified)</span>
+                          }
+                        </p>
+                        <p className="text-sm text-gray-500">Phone: {user.sellerPhone || user.phone}</p>
+                        <p className="text-sm text-gray-500">Identity Document: 
+                          {user.sellerIdentityVerified ? 
+                            <span className="text-green-500 ml-1">(✓ Verified)</span> : 
+                            <span className="text-yellow-500 ml-1">(Pending Verification)</span>
+                          }
+                        </p>
                         <p className="text-sm text-gray-500">Submitted: {new Date(user.sellerRequestDate || '').toLocaleDateString()}</p>
                       </div>
                       <p className="text-sm text-gray-500">We'll notify you by email once your application has been reviewed.</p>
@@ -703,488 +858,4 @@ const SellerPage = () => {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <UserX size={48} className="mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium mb-2">No Application Found</h3>
-                  <p className="text-gray-500 mb-4">You haven't submitted a seller application yet.</p>
-                  <Button onClick={() => setActiveTab('register')}>Register as Seller</Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="dashboard" className="animate-fade-in">
-          {renderSellerContent()}
-        </TabsContent>
-
-        <TabsContent value="products" className="animate-fade-in space-y-6">
-          {user?.isSeller && user?.sellerApproved ? (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tag size={18} />
-                    Add New Product
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onProductSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Product Name</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Enter product name" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} placeholder="Describe your product" rows={3} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="price"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Price</FormLabel>
-                              <div className="relative">
-                                <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                                <FormControl>
-                                  <Input {...field} type="number" step="0.01" min="0" className="pl-8" />
-                                </FormControl>
-                              </div>
-                              <FormMessage />
-                              {form.watch('price') > 0 && (
-                                <div className="mt-1 text-xs text-gray-500 flex justify-between">
-                                  <span>Commission ({isVendorArexOriginal ? '0%' : '5%'}):</span>
-                                  <span>{currencySymbol}{calculateCommission(form.watch('price')).toFixed(2)}</span>
-                                </div>
-                              )}
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="inventory"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Inventory</FormLabel>
-                              <FormControl>
-                                <Input {...field} type="number" min="1" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="category"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="e.g. Electronics" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="brand"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Brand</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="e.g. Samsung" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Product Images (Required)</Label>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {imagePreviewUrls.map((imageUrl, i) => (
-                            <div key={i} className="relative w-20 h-20 border rounded-md overflow-hidden group">
-                              <img src={imageUrl} alt={`Product ${i+1}`} className="w-full h-full object-cover" />
-                              <button 
-                                type="button" 
-                                onClick={() => removeProductImage(i)}
-                                className="absolute top-0 right-0 bg-black bg-opacity-50 text-white p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ))}
-                          <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed rounded-md cursor-pointer hover:bg-gray-50">
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={handleProductImagesChange}
-                              multiple
-                            />
-                            <Plus size={24} className="text-gray-400" />
-                          </label>
-                        </div>
-                        {productImages.length === 0 && (
-                          <p className="text-xs text-red-500">Upload at least one product image</p>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <Label>Specifications</Label>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm"
-                            onClick={addSpecification}
-                          >
-                            Add Spec
-                          </Button>
-                        </div>
-                        
-                        {specifications.map((spec, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <Input
-                              placeholder="Feature"
-                              value={spec.key}
-                              onChange={(e) => updateSpecification(i, e.target.value, spec.value)}
-                              className="flex-1"
-                            />
-                            <Input
-                              placeholder="Value"
-                              value={spec.value}
-                              onChange={(e) => updateSpecification(i, spec.key, e.target.value)}
-                              className="flex-1"
-                            />
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => removeSpecification(i)}
-                              disabled={specifications.length <= 1}
-                            >
-                              ✕
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <Button type="submit" className="w-full">Add Product</Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Products</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {products.length > 0 ? (
-                    <div className="space-y-4">
-                      {products.map((product) => (
-                        <div key={product.id} className="flex items-center p-3 border rounded-lg">
-                          <div className="h-16 w-16 bg-gray-200 rounded-md overflow-hidden">
-                            <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
-                          </div>
-                          <div className="ml-4 flex-1">
-                            <h3 className="font-medium">{product.name}</h3>
-                            <div className="flex justify-between text-sm text-gray-500">
-                              <span>{currencySymbol}{product.price.toFixed(2)}</span>
-                              <span>In stock: {product.inventory}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Package size={32} className="mx-auto mb-2" />
-                      <p>You haven't added any products yet</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-10">
-                <UserX size={48} className="mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-medium mb-2">Access Denied</h3>
-                <p className="text-gray-500 mb-4">You need to be an approved seller to access this section.</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="orders" className="animate-fade-in">
-          {user?.isSeller && user?.sellerApproved ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Truck size={18} />
-                  Manage Orders
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {orders.length > 0 ? (
-                  <div className="space-y-4">
-                    {orders.map((order) => (
-                      <div key={order.id} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-medium">{order.productName}</h3>
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'shipped' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100'
-                          }`}>
-                            {order.status.toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-500 mb-3">
-                          <p>Order #{order.id}</p>
-                          <p>Customer: {order.customer}</p>
-                          <p>Date: {order.date}</p>
-                        </div>
-                        {!order.delivered ? (
-                          selectedOrderId === order.id ? (
-                            <div className="space-y-3">
-                              <p className="text-sm">Confirm that the delivery person has picked up this order?</p>
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="sm" 
-                                  onClick={() => confirmDelivery(order.id)}
-                                  className="bg-green-500 hover:bg-green-600"
-                                >
-                                  Confirm
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => setSelectedOrderId(null)}
-                                >
-                                  Cancel
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <Button 
-                              size="sm"
-                              variant="outline"
-                              className="w-full"
-                              onClick={() => setSelectedOrderId(order.id)}
-                            >
-                              Mark as Out for Delivery
-                            </Button>
-                          )
-                        ) : (
-                          <div className="flex items-center text-green-600">
-                            <CheckCircle size={16} className="mr-1" />
-                            <span className="text-sm">Out for delivery</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Package size={32} className="mx-auto mb-2" />
-                    <p>You don't have any orders yet</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-10">
-                <UserX size={48} className="mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-medium mb-2">Access Denied</h3>
-                <p className="text-gray-500 mb-4">You need to be an approved seller to access this section.</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-        
-        {/* Admin section for approving sellers */}
-        <TabsContent value="requests" className="animate-fade-in">
-          {isAdmin ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield size={18} />
-                  Approve Seller Requests
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {pendingSellerRequests.length > 0 ? (
-                  <div className="space-y-4">
-                    {pendingSellerRequests.map((sellerRequest) => (
-                      <div key={sellerRequest.id} className="border rounded-md p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium">{sellerRequest.storeDetails?.name}</h3>
-                          <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">Pending</span>
-                        </div>
-                        
-                        <div className="space-y-1 text-sm text-gray-500 mb-3">
-                          <p><span className="font-medium">Seller:</span> {sellerRequest.name}</p>
-                          <p><span className="font-medium">Email:</span> {sellerRequest.email}</p>
-                          <p><span className="font-medium">Store description:</span> {sellerRequest.storeDetails?.description}</p>
-                          <p><span className="font-medium">Requested:</span> {new Date(sellerRequest.sellerRequestDate || '').toLocaleDateString()}</p>
-                          <p className={`flex items-center ${sellerRequest.sellerVerified ? 'text-green-500' : 'text-yellow-500'}`}>
-                            {sellerRequest.sellerVerified ? (
-                              <>
-                                <CheckCircle size={14} className="mr-1" />
-                                Email verified
-                              </>
-                            ) : (
-                              <>
-                                <Clock size={14} className="mr-1" />
-                                Email verification pending
-                              </>
-                            )}
-                          </p>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-green-500 hover:bg-green-600"
-                            onClick={() => handleApproveSeller(sellerRequest.id)}
-                            disabled={!sellerRequest.sellerVerified}
-                          >
-                            <Check size={16} className="mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 border-red-300 text-red-500 hover:bg-red-50"
-                            onClick={() => handleRejectSeller(sellerRequest.id)}
-                          >
-                            <X size={16} className="mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                        
-                        {!sellerRequest.sellerVerified && (
-                          <p className="text-xs text-yellow-600 mt-2">
-                            Note: The seller must verify their email before they can be approved.
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <CheckCircle size={32} className="mx-auto mb-2" />
-                    <p>No pending seller requests</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-10">
-                <UserX size={48} className="mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-medium mb-2">Access Denied</h3>
-                <p className="text-gray-500 mb-4">You need to be an admin to access this section.</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="settings" className="animate-fade-in">
-          <Card>
-            <CardHeader>
-              <CardTitle>Seller Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {user?.isSeller && user?.sellerApproved ? (
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Switch
-                        id="arex-switch"
-                        checked={isVendorArexOriginal}
-                        onCheckedChange={setIsVendorArexOriginal}
-                      />
-                      <Label htmlFor="arex-switch" className="font-medium">I am an AREXORIGINAL vendor</Label>
-                    </div>
-                    {isVendorArexOriginal ? (
-                      <p className="text-sm text-green-600">As an AREXORIGINAL vendor, you are exempt from the 5% commission fee.</p>
-                    ) : (
-                      <p className="text-sm text-gray-500">Standard 5% commission applies to all sales.</p>
-                    )}
-                  </div>
-                  
-                  <div className="border-t pt-6">
-                    <h3 className="text-lg font-medium mb-2">Store Details</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="store-name">Store Name</Label>
-                        <Input 
-                          id="store-name"
-                          value={user.storeDetails?.name}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="store-description">Store Description</Label>
-                        <Textarea 
-                          id="store-description"
-                          value={user.storeDetails?.description}
-                          className="mt-1"
-                          rows={3}
-                        />
-                      </div>
-                      <Button className="w-full">Update Store Details</Button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <UserX size={48} className="mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium mb-2">Not Available</h3>
-                  <p className="text-gray-500 mb-4">You need to be an approved seller to access settings.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-};
-
-export default SellerPage;
+                <div className="
