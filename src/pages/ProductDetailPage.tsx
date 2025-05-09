@@ -50,16 +50,6 @@ const mockReviews = [
   }
 ];
 
-// Generate additional product images
-const generateExtraImages = (product: any) => {
-  return [
-    product.image,
-    'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b',
-    'https://images.unsplash.com/photo-1518770660439-4636190af475',
-    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
-  ];
-};
-
 const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -90,7 +80,8 @@ const ProductDetailPage = () => {
     );
   }
 
-  const productImages = generateExtraImages(product);
+  // Use product.images if available, otherwise fallback to [product.image]
+  const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
   
   const handleWishlistToggle = () => {
     if (isInWishlist(product.id)) {
