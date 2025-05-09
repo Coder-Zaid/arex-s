@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Home, Search, Heart, ShoppingCart, Package, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/context/ThemeContext';
@@ -17,7 +17,13 @@ const BottomNavigation = () => {
   };
   
   return (
-    <div className={`fixed bottom-0 left-0 right-0 ${theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'} border-t py-2 px-1 z-10 max-w-[480px] mx-auto`}>
+    <motion.div 
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 100 }}
+      className="fixed bottom-0 left-0 right-0 border-t border-transparent py-2 px-1 z-10 max-w-[480px] mx-auto bg-transparent"
+      style={{backdropFilter: 'none'}}
+    >
       <div className="flex justify-around items-center">
         <NavItem 
           to="/"
@@ -56,7 +62,7 @@ const BottomNavigation = () => {
           active={isActive('/seller')}
         />
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -71,22 +77,34 @@ const NavItem = ({ to, icon, label, active }: NavItemProps) => {
   const { theme } = useTheme();
   
   return (
-    <Link 
-      to={to} 
-      className={cn(
-        "flex flex-col items-center space-y-1 px-1", 
-        active 
-          ? theme === 'dark' 
-            ? "text-white bg-[#191919] rounded-md px-2 py-1" 
-            : "text-brand-blue" 
-          : theme === 'dark' 
-            ? "text-gray-400" 
-            : "text-gray-500"
-      )}
+    <motion.div
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
     >
-      {icon}
-      <span className="text-xs">{label}</span>
-    </Link>
+      <Link 
+        to={to} 
+        className={cn(
+          "flex flex-col items-center space-y-1 px-1 text-black", 
+          active 
+            ? "font-bold" 
+            : "opacity-70"
+        )}
+      >
+        <motion.div
+          animate={active ? { scale: [1, 1.2, 1] } : {}}
+          transition={{ duration: 0.3 }}
+        >
+          {icon}
+        </motion.div>
+        <motion.span 
+          className="text-xs"
+          animate={active ? { y: [-2, 0] } : {}}
+          transition={{ duration: 0.2 }}
+        >
+          {label}
+        </motion.span>
+      </Link>
+    </motion.div>
   );
 };
 

@@ -1,30 +1,42 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { products } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import { Search, ChevronLeft, Filter } from 'lucide-react';
 import { useAppSettings } from '@/context/AppSettingsContext';
+import { useProducts } from '@/context/ProductContext';
+import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from '@/components/ui/drawer';
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const SearchPage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { language } = useAppSettings();
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [priceRange, setPriceRange] = useState<number[]>([0, 10000]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedRating, setSelectedRating] = useState<number | null>(null);
+  const { products } = useProducts();
   
   const categories = Array.from(new Set(products.map(product => product.category)));
+  const brands = Array.from(new Set(products.map(product => product.brand)));
+  const minPrice = Math.min(...products.map(p => p.price));
+  const maxPrice = Math.max(...products.map(p => p.price));
   
   const filteredProducts = products.filter(product => {
     const matchesQuery = searchQuery === '' || 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.brand.toLowerCase().includes(searchQuery.toLowerCase());
-      
     const matchesCategory = activeCategory === null || product.category === activeCategory;
-    
-    return matchesQuery && matchesCategory;
+    const matchesPrice = product.price >= (priceRange[0] as number) && product.price <= (priceRange[1] as number);
+    const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
+    const matchesRating = selectedRating === null || Math.floor(product.rating) === selectedRating;
+    return matchesQuery && matchesCategory && matchesPrice && matchesBrand && matchesRating;
   });
 
   // Format number based on language
@@ -54,9 +66,72 @@ const SearchPage = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button variant="ghost" size="icon" className="ml-2">
-          <Filter />
-        </Button>
+        <Drawer open={isDrawerOpen} onOpenChange={setDrawerOpen}>
+          <DrawerTrigger asChild>
+            <Button variant="ghost" size="icon" className="ml-2">
+              <Filter />
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{language === 'ar' ? 'تصفية المنتجات' : 'Filter Products'}</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4 space-y-6">
+              {/* Price Range */}
+              <div>
+                <div className="font-medium mb-2">{language === 'ar' ? 'السعر' : 'Price'}</div>
+                <Slider
+                  min={minPrice}
+                  max={maxPrice}
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  step={1}
+                  className="mb-2"
+                />
+                <div className="flex justify-between text-xs">
+                  <span>{minPrice}</span>
+                  <span>{maxPrice}</span>
+                </div>
+              </div>
+              {/* Brand */}
+              <div>
+                <div className="font-medium mb-2">{language === 'ar' ? 'العلامة التجارية' : 'Brand'}</div>
+                <div className="flex flex-wrap gap-2">
+                  {brands.map(brand => (
+                    <div key={brand} className="flex items-center gap-2">
+                      <Checkbox
+                        checked={selectedBrands.includes(brand)}
+                        onCheckedChange={checked => {
+                          setSelectedBrands(prev => checked ? [...prev, brand] : prev.filter(b => b !== brand));
+                        }}
+                      />
+                      <span>{brand}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Rating */}
+              <div>
+                <div className="font-medium mb-2">{language === 'ar' ? 'التقييم' : 'Rating'}</div>
+                <RadioGroup value={selectedRating?.toString() || ''} onValueChange={val => setSelectedRating(val ? parseInt(val) : null)} className="flex gap-2">
+                  {[5, 4, 3, 2, 1].map(rating => (
+                    <RadioGroupItem key={rating} value={rating.toString()} id={`rating-${rating}`} />
+                  ))}
+                </RadioGroup>
+              </div>
+            </div>
+            <DrawerFooter>
+              <Button onClick={() => setDrawerOpen(false)}>{language === 'ar' ? 'تطبيق' : 'Apply'}</Button>
+              <DrawerClose asChild>
+                <Button variant="outline" onClick={() => {
+                  setPriceRange([minPrice, maxPrice]);
+                  setSelectedBrands([]);
+                  setSelectedRating(null);
+                }}>{language === 'ar' ? 'إعادة تعيين' : 'Reset'}</Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
       </div>
       
       {/* Categories */}

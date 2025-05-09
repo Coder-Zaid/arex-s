@@ -1,13 +1,14 @@
-
 import React from 'react';
 import BannerSlider from '@/components/BannerSlider';
 import ProductCard from '@/components/ProductCard';
-import { products, banners } from '@/data/products';
+import { banners } from '@/data/products';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useAppSettings } from '@/context/AppSettingsContext';
+import { useProducts } from '@/context/ProductContext';
 
 const HomePage = () => {
+  const { products } = useProducts();
   // Filter products for each section
   const featuredProducts = products.filter(p => p.featured);
   const newProducts = products.filter(p => p.isNew);
@@ -16,7 +17,7 @@ const HomePage = () => {
   const t = translations[language];
   
   return (
-    <div className="pb-20">
+    <div className="pb-20 min-h-screen w-full bg-transparent">
       {/* Banner Slider */}
       <section className="my-4">
         <BannerSlider banners={banners} />

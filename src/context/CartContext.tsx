@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { CartItem, Product } from '../types';
 import { useToast } from '@/components/ui/use-toast';
+import { ToastAction } from '@/components/ui/toast';
+import { useNavigate } from 'react-router-dom';
 
 interface CartContextType {
   items: CartItem[];
@@ -25,6 +27,7 @@ export const useCart = () => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Load cart from localStorage on initialization
@@ -50,6 +53,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Cart updated",
           description: `${product.name} quantity updated in your cart`,
+          action: (
+            <ToastAction altText="View Cart" onClick={() => navigate('/cart')}>
+              View Cart
+            </ToastAction>
+          )
         });
         return updatedItems;
       } else {
@@ -57,6 +65,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Added to cart",
           description: `${product.name} added to your cart`,
+          action: (
+            <ToastAction altText="View Cart" onClick={() => navigate('/cart')}>
+              View Cart
+            </ToastAction>
+          )
         });
         return [...prevItems, { product, quantity }];
       }

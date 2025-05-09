@@ -1,19 +1,19 @@
+import { User as FirebaseUser } from 'firebase/auth';
 
-export interface User {
+export interface CustomUserData {
   id: string;
-  email: string;
-  name: string;
   address?: string;
   phone?: string;
+  bio?: string;
   isSeller?: boolean;
   sellerVerified?: boolean;
   sellerApproved?: boolean;
   sellerRequestDate?: string;
-  sellerPhone?: string; // Added for seller phone number
-  sellerEmail?: string; // Added for seller email
-  sellerIdentityVerified?: boolean; // Added for identity verification
-  sellerAge?: number; // Added for age verification
-  sellerIdentityDoc?: string; // Added for identity document
+  sellerPhone?: string;
+  sellerEmail?: string;
+  sellerIdentityVerified?: boolean;
+  sellerAge?: number;
+  sellerIdentityDoc?: string;
   storeDetails?: {
     name: string;
     description: string;
@@ -21,24 +21,26 @@ export interface User {
   };
 }
 
+export interface User extends FirebaseUser, CustomUserData {}
+
 export interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
-  oldPrice?: number;
   image: string;
   images?: string[];
   category: string;
   brand: string;
+  seller?: string;
   rating: number;
-  inStock: boolean;
-  featured?: boolean;
-  isNew?: boolean;
-  onSale?: boolean;
-  sellerId?: string;
+  reviews?: Review[];
+  inStock?: boolean;
   inventory?: number;
-  specifications?: {key: string; value: string}[];
+  isNew?: boolean;
+  featured?: boolean;
+  onSale?: boolean;
+  oldPrice?: number;
 }
 
 export interface CartItem {
@@ -48,24 +50,15 @@ export interface CartItem {
 
 export interface Order {
   id: string;
+  userId: string;
   items: CartItem[];
-  totalAmount: number;
-  currency: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentMethod: 'cash' | 'card';
-  paymentStatus?: 'pending' | 'paid' | 'refunded' | 'failed';
-  deliveryAddress: string;
-  orderDate: string;
-  estimatedDelivery?: string;
-  actualDelivery?: string;
-  trackingNumber?: string;
-  sellerId?: string;
-  buyerId?: string;
+  total: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  date: string;
 }
 
 export interface Review {
   id: string;
-  productId: string;
   userId: string;
   userName: string;
   rating: number;

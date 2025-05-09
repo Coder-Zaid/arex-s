@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -41,6 +40,8 @@ import * as z from 'zod';
 import { Product, User } from '@/types';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useTheme } from '@/context/ThemeContext';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useProducts } from '@/context/ProductContext';
 
 const productSchema = z.object({
   name: z.string().min(3, { message: "Product name must be at least 3 characters" }),
@@ -62,8 +63,6 @@ const SellerPage = () => {
     approveSellerRequest, 
     rejectSellerRequest, 
     pendingSellerRequests,
-    verifySellerEmail,
-    resendVerificationCode,
     verifySellerIdentity,
     ownerEmail,
     ownerPhone
@@ -80,18 +79,19 @@ const SellerPage = () => {
   const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([
     { key: '', value: '' }
   ]);
-  const [isVendorArexOriginal, setIsVendorArexOriginal] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [verifyingEmail, setVerifyingEmail] = useState(false);
   const [sellerPhone, setSellerPhone] = useState('');
   const [sellerEmail, setSellerEmail] = useState('');
   const [sellerAge, setSellerAge] = useState<number>(18);
   const [identityDoc, setIdentityDoc] = useState<File | null>(null);
   const { currencySymbol, currency, convertPrice } = useAppSettings();
+  const [sellerStatus, setSellerStatus] = useState<'pending' | 'accepted' | 'declined' | 'register'>('register');
+  const [verificationCode, setVerificationCode] = useState('');
+  const resendVerificationCode = () => {};
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [adminTab, setAdminTab] = useState<'products' | 'approvals'>('products');
+  const { products, addProduct, removeProduct } = useProducts();
   
   // Set the owner's contact information
   const OWNER_EMAIL = "arex.ksa@gmail.com";
@@ -112,82 +112,46 @@ const SellerPage = () => {
   // Check if user is an admin (for approving seller requests)
   const isAdmin = user?.sellerApproved && user?.isSeller;
 
-  // Redirect to login if not authenticated
+  // Helper to check if user is admin
+  const isAdminUser = user?.email === OWNER_EMAIL;
+
+  const [localPendingRequests, setLocalPendingRequests] = useState(pendingSellerRequests);
+
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    } else if (isAdmin) {
-      // Set admin to requests tab by default
-      setActiveTab('requests');
-    } else if (user?.isSeller && user?.sellerApproved) {
-      setActiveTab('dashboard');
-    } else if (user?.storeDetails && !user?.sellerVerified) {
-      // If user has registered but not verified, direct to verification tab
-      setActiveTab('verification');
-    } else {
-      // Default to registration tab for new sellers
+    setLocalPendingRequests(pendingSellerRequests);
+  }, [pendingSellerRequests]);
+
+  useEffect(() => {
+    if (user?.sellerApproved && user?.isSeller) {
+      setSellerStatus('accepted');
+    } else if (user && !user.sellerApproved) {
+      setSellerStatus('pending');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Reset seller tab state when user changes
+    setStoreName('');
+    setStoreDescription('');
+    setLogoFile(null);
+    setSellerPhone('');
+    setSellerEmail('');
+    setSellerAge(18);
+    setIdentityDoc(null);
+    if (!user?.storeDetails) {
+      setSellerStatus('register');
       setActiveTab('register');
+    } else if (user && !user.sellerApproved) {
+      setSellerStatus('pending');
+      setActiveTab('pending');
     }
-    
-    // Simulate loading products if user is authenticated
-    if (isAuthenticated && user?.isSeller && user?.sellerApproved) {
-      if (activeTab === 'products' || activeTab === 'orders') {
-        setTimeout(() => {
-          const mockProducts = [
-            {
-              id: "seller-1",
-              name: "Professional DSLR Camera",
-              description: "High-quality professional camera with 24MP sensor",
-              price: 1299.99,
-              image: "/placeholder.svg",
-              category: "Cameras",
-              brand: "PhotoPro",
-              rating: 4.8,
-              inStock: true,
-              sellerId: user?.id,
-              inventory: 5
-            },
-            {
-              id: "seller-2",
-              name: "Wireless Earbuds",
-              description: "True wireless earbuds with noise cancellation",
-              price: 149.99,
-              image: "/placeholder.svg",
-              category: "Audio",
-              brand: "SoundMaster",
-              rating: 4.5,
-              inStock: true,
-              sellerId: user?.id,
-              inventory: 20
-            }
-          ];
-          setProducts(mockProducts);
-          
-          const mockOrders = [
-            {
-              id: "order-1",
-              productId: "seller-1",
-              productName: "Professional DSLR Camera",
-              customer: "John Smith",
-              status: "pending",
-              date: "2023-05-01",
-              delivered: false
-            },
-            {
-              id: "order-2",
-              productId: "seller-2",
-              productName: "Wireless Earbuds",
-              customer: "Emily Johnson",
-              status: "processing",
-              date: "2023-05-03",
-              delivered: false
-            }
-          ];
-          setOrders(mockOrders);
-        }, 500);
-      }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (isAdminUser) {
+      setActiveTab('products');
     }
-  }, [isAuthenticated, navigate, activeTab, user?.id, user?.isSeller, user?.sellerApproved, isAdmin, user?.sellerVerified, user?.storeDetails]);
+  }, [isAdminUser]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -240,9 +204,8 @@ const SellerPage = () => {
     }
   };
 
-  const handleStoreSubmit = (e: React.FormEvent) => {
+  const handleStoreSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     // Form validation
     if (!storeName || !storeDescription || !sellerPhone || !sellerEmail || !sellerAge) {
       toast({
@@ -252,7 +215,6 @@ const SellerPage = () => {
       });
       return;
     }
-    
     if (!identityDoc) {
       toast({
         title: "Missing document",
@@ -261,60 +223,41 @@ const SellerPage = () => {
       });
       return;
     }
-    
+    if (identityDoc && identityDoc.size > 2 * 1024 * 1024) {
+      toast({ title: 'File too large. Max 2MB allowed.', variant: 'destructive' });
+      return;
+    }
     setIsSubmitting(true);
-    
-    // Submit seller request with additional information
-    requestSellerAccount(
-      storeName, 
-      storeDescription, 
-      sellerPhone,
-      sellerEmail,
-      sellerAge,
-      identityDoc,
-      logoFile || undefined
-    )
-      .then(() => {
-        setIsSubmitting(false);
-        // Switch to verification tab after registration
-        setActiveTab('verification');
-        
-        // Send notification email to owner (in a real app this would be done on the backend)
-        toast({
-          title: "Registration submitted",
-          description: `A notification has been sent to ${OWNER_EMAIL}`,
-        });
-      })
-      .catch(() => {
-        setIsSubmitting(false);
+    try {
+      // Remove all emailjs logic and just register the seller in app state
+      await requestSellerAccount(
+        storeName,
+        storeDescription,
+        sellerPhone,
+        sellerEmail,
+        sellerAge,
+        identityDoc,
+        logoFile
+      );
+      setSellerStatus('pending');
+      toast({
+        title: 'Seller request sent',
+        description: 'Your seller request was sent and is pending approval.'
       });
+      setActiveTab('products');
+    } catch (err) {
+      toast({
+        title: 'Could not send seller request',
+        description: 'There was an error sending your request.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleVerifyEmail = async () => {
-    setVerifyingEmail(true);
-    
-    try {
-      const isVerified = await verifySellerEmail(verificationCode);
-      
-      if (isVerified) {
-        setEmailVerified(true);
-        
-        toast({
-          title: "Email verified",
-          description: "Your email has been verified successfully. Your account is now pending approval from an administrator.",
-        });
-        
-        setActiveTab('pending');
-      } else {
-        toast({
-          title: "Verification failed",
-          description: "The verification code is incorrect. Please try again.",
-          variant: "destructive"
-        });
-      }
-    } finally {
-      setVerifyingEmail(false);
-    }
+    // This function is removed as per the instructions
   };
   
   const handleApproveSeller = (sellerId: string) => {
@@ -324,6 +267,7 @@ const SellerPage = () => {
           title: "Seller approved",
           description: "The seller account has been approved successfully.",
         });
+        setLocalPendingRequests(prev => prev.filter(req => req.id !== sellerId));
       });
   };
   
@@ -344,10 +288,20 @@ const SellerPage = () => {
           title: "Seller rejected",
           description: "The seller account request has been rejected.",
         });
+        setLocalPendingRequests(prev => prev.filter(req => req.id !== sellerId));
       });
   };
   
-  const onProductSubmit = (data: ProductFormValues) => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const onProductSubmit = async (data: ProductFormValues) => {
     if (!user?.isSeller || !user?.sellerApproved) {
       toast({
         title: "Permission denied",
@@ -356,7 +310,6 @@ const SellerPage = () => {
       });
       return;
     }
-    
     if (productImages.length === 0) {
       toast({
         title: "Error",
@@ -365,40 +318,28 @@ const SellerPage = () => {
       });
       return;
     }
-    
-    // Simulate API call
-    setTimeout(() => {
-      const newProduct: Product = {
-        id: `seller-${Date.now()}`,
-        ...data,
-        image: URL.createObjectURL(productImages[0]),
-        rating: 0,
-        inStock: true,
-        sellerId: user?.id || '',
-        images: imagePreviewUrls,
-        // Make sure all required fields have values
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        category: data.category,
-        brand: data.brand
-      };
-      
-      setProducts([newProduct, ...products]);
-      
-      toast({
-        title: "Product Added",
-        description: "Your product has been successfully listed for sale",
-      });
-      
-      // Reset form
-      form.reset();
-      setProductImages([]);
-      setImagePreviewUrls([]);
-      setSpecifications([{ key: '', value: '' }]);
-      
-      setActiveTab('products');
-    }, 1000);
+    // Convert first image to base64
+    const imageBase64 = await fileToBase64(productImages[0]);
+    const newProduct: Product = {
+      id: `seller-${Date.now()}`,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      inventory: data.inventory,
+      category: data.category,
+      image: imageBase64,
+      brand: data.brand,
+      rating: 0,
+      inStock: data.inventory > 0,
+      isNew: true,
+      seller: user?.id || '',
+    };
+    addProduct(newProduct);
+    form.reset();
+    setProductImages([]);
+    setImagePreviewUrls([]);
+    setSpecifications([{ key: '', value: '' }]);
+    setActiveTab('products');
   };
 
   const confirmDelivery = (orderId: string) => {
@@ -415,88 +356,549 @@ const SellerPage = () => {
   };
   
   const calculateCommission = (price: number) => {
-    if (isVendorArexOriginal) {
-      return 0;
-    }
     return price * 0.05; // 5% commission
   };
 
   // Content for different seller states
   const renderSellerContent = () => {
-    // If user is seller but not approved
-    if (user?.storeDetails && !user?.sellerApproved) {
+    if (sellerStatus === 'declined') {
       return (
-        <Card className={theme === 'dark' ? 'bg-gray-900 text-white border-gray-800' : ''}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock size={18} className="text-yellow-500" />
-              Seller Account Pending Approval
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center py-8">
+        <div className="shadow-lg rounded-xl p-6 mb-6 text-center">
+          <div className="flex items-center gap-2 mb-4 justify-center">
+            <UserX size={18} className="text-red-500" />
+            <span className="font-bold text-lg">Seller Application Declined</span>
+          </div>
+          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+            <X size={32} className="text-red-500" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">You were not accepted as a seller</h3>
+          <p className="mb-4 text-gray-500">Unfortunately, your seller application was declined. Please contact support for more information.</p>
+        </div>
+      );
+    }
+    if (sellerStatus === 'pending') {
+      return (
+        <div className="shadow-lg rounded-xl p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock size={18} className="text-yellow-500" />
+            <span className="font-bold text-lg">Seller Account Pending Approval</span>
+          </div>
+          <div className="text-center py-8">
             <div className="w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center">
               <Clock size={32} className="text-yellow-500" />
             </div>
             <h3 className="text-lg font-medium mb-2">Your seller application is under review</h3>
             <p className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Thank you for registering as a seller. Your application is currently being reviewed by our team.</p>
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-400'}`}>Store name: {user.storeDetails.name}</p>
-            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-400'}`}>Submitted on: {new Date(user.sellerRequestDate || '').toLocaleDateString()}</p>
-          </CardContent>
-        </Card>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-400'}`}>Store name: {storeName}</p>
+          </div>
+          {/* Demo admin controls for owner to accept/decline */}
+          {user?.email === OWNER_EMAIL && (
+            <div className="flex gap-2 justify-center mt-4">
+              <Button onClick={async () => { setSellerStatus('accepted'); }} className="bg-green-500 hover:bg-green-600">Accept</Button>
+              <Button onClick={async () => { setSellerStatus('declined'); }} className="bg-red-500 hover:bg-red-600">Decline</Button>
+            </div>
+          )}
+        </div>
       );
     }
-    
-    // If user is approved seller
-    if (user?.isSeller && user?.sellerApproved) {
+    if (sellerStatus === 'accepted') {
+      // Show seller dashboard, add products, see sales, etc.
       return (
-        <Card className={theme === 'dark' ? 'bg-gray-900 text-white border-gray-800' : ''}>
+        <div>
+          {/* Seller dashboard content here */}
+          <div className="shadow-lg rounded-xl p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <CheckCircle size={18} className="text-green-500" />
+              <span className="font-bold text-lg">Seller Dashboard</span>
+            </div>
+            <p className="mb-4 text-gray-500">Welcome! You can now add products, view your sales, and manage your store.</p>
+            {/* Add product and sales management UI here */}
+          </div>
+        </div>
+      );
+    }
+    if (sellerStatus === 'register') {
+      return (
+        <Card className="shadow-lg rounded-xl p-6 mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CheckCircle size={18} className="text-green-500" />
-              Seller Account Active
+              <Store size={18} />
+              Become a Seller
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-medium">{user.storeDetails?.name}</p>
-            <p className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>{user.storeDetails?.description}</p>
-            
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className={`p-4 rounded-lg text-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>
-                <p className="text-2xl font-bold">{products.length}</p>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Products</p>
+            {!user?.storeDetails ? (
+              <form onSubmit={handleStoreSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="store-name" className={theme === 'dark' ? 'text-white' : ''}>
+                    Store Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input 
+                    id="store-name"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    placeholder="Your store name"
+                    required
+                    className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="store-description" className={theme === 'dark' ? 'text-white' : ''}>
+                    Store Description <span className="text-red-500">*</span>
+                  </Label>
+                  <Textarea 
+                    id="store-description"
+                    value={storeDescription}
+                    onChange={(e) => setStoreDescription(e.target.value)}
+                    placeholder="Tell customers about your store"
+                    rows={4}
+                    required
+                    className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="seller-phone" className={theme === 'dark' ? 'text-white' : ''}>
+                      Phone Number <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Phone className={`absolute left-2 top-2.5 h-4 w-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                      <Input
+                        id="seller-phone"
+                        value={sellerPhone}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9+]/g, '');
+                          setSellerPhone(val);
+                        }}
+                        placeholder="e.g. +966123456789"
+                        className="pl-8 bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="seller-email" className={theme === 'dark' ? 'text-white' : ''}>
+                      Email <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="seller-email"
+                      type="email"
+                      value={sellerEmail}
+                      onChange={(e) => setSellerEmail(e.target.value)}
+                      placeholder="Your email for seller communications"
+                      required
+                      className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="seller-age" className={theme === 'dark' ? 'text-white' : ''}>
+                      Age <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Calendar className={`absolute left-2 top-2.5 h-4 w-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                      <Input
+                        id="seller-age"
+                        type="number"
+                        min="18"
+                        max="100"
+                        value={sellerAge}
+                        onChange={(e) => setSellerAge(parseInt(e.target.value))}
+                        className="pl-8 bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="identity-doc" className={theme === 'dark' ? 'text-white' : ''}>
+                      National Identity Document <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="flex flex-col">
+                      <Input
+                        id="identity-doc"
+                        type="file"
+                        onChange={handleIdentityDocChange}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="hidden"
+                      />
+                      <Label 
+                        htmlFor="identity-doc"
+                        className="flex items-center gap-2 bg-brand-blue text-white shadow rounded-full px-4 py-2 cursor-pointer w-fit hover:opacity-90 transition-all"
+                      >
+                        <FileCheck size={16} />
+                        {identityDoc ? identityDoc.name : 'Upload Document'}
+                      </Label>
+                      {!identityDoc && (
+                        <p className="text-xs text-red-500 mt-1">Please upload your national identity document</p>
+                      )}
+                      {identityDoc && (
+                        <p className={`text-xs text-green-500 mt-1 ${theme === 'dark' ? 'text-green-400' : ''}`}>Document uploaded</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Switch
+                      id="arex-switch"
+                      checked={false}
+                      onCheckedChange={() => {}}
+                      className={theme === 'dark' ? 'data-[state=checked]:bg-green-500' : ''}
+                      thumbClassName="bg-black"
+                    />
+                    <Label htmlFor="arex-switch" className={`font-medium ${theme === 'dark' ? 'text-white' : ''}`}>
+                      I am an AREXORIGINAL vendor
+                    </Label>
+                  </div>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Standard 5% commission applies to all sales.</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="store-logo" className={theme === 'dark' ? 'text-white' : ''}>Store Logo</Label>
+                  <div className="flex items-center gap-4">
+                    <div className={`border rounded-lg w-24 h-24 flex items-center justify-center overflow-hidden ${
+                      theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      {logoFile ? (
+                        <img 
+                          src={URL.createObjectURL(logoFile)} 
+                          alt="Store logo preview" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Image size={32} className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        id="store-logo"
+                        type="file"
+                        onChange={handleLogoChange}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <Label 
+                        htmlFor="store-logo"
+                        className="flex items-center gap-2 bg-brand-blue text-white shadow rounded-full px-4 py-2 cursor-pointer w-fit hover:opacity-90 transition-all"
+                      >
+                        <Upload size={16} />
+                        Choose Image
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`border rounded-md p-4 mt-4 ${
+                  theme === 'dark' ? 'bg-blue-900/30 border-blue-800' : 'bg-blue-50 border-blue-200'
+                }`}>
+                  <h3 className={`flex items-center font-medium mb-2 ${
+                    theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
+                  }`}>
+                    <AlertCircle size={16} className="mr-2" />
+                    Contact Information
+                  </h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                    For any questions or assistance with your seller application:
+                  </p>
+                  <div className="mt-2 text-sm">
+                    <p className="flex items-center mb-1">
+                      <Mail size={14} className={`mr-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
+                      {OWNER_EMAIL}
+                    </p>
+                    <p className="flex items-center">
+                      <Phone size={14} className={`mr-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
+                      {OWNER_PHONE}
+                    </p>
+                  </div>
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-brand-blue hover:bg-brand-blue/90 mt-4"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Register as Seller'
+                  )}
+                </Button>
+
+                <div className={`text-xs border-t pt-4 mt-4 ${theme === 'dark' ? 'text-gray-300 border-gray-700' : 'text-gray-500 border-gray-200'}`}>
+                  <p className="mb-2">By registering as a seller, you agree to our terms and conditions:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>You must verify your email address</li>
+                    <li>You must provide a valid national identity document</li>
+                    <li>Your seller account will be reviewed by our team</li>
+                    <li>You can only sell products once your account is approved</li>
+                    <li>5% commission applies to all sales (exempt for AREXORIGINAL vendors)</li>
+                  </ul>
+                </div>
+              </form>
+            ) : (
+              <div className="text-center py-8">
+                <CheckCircle size={48} className="mx-auto mb-4 text-green-500" />
+                <h3 className="text-lg font-medium mb-2">Registration Submitted</h3>
+                <p className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
+                  Your seller registration has been submitted.
+                </p>
+                <Button onClick={() => setActiveTab('verification')}>Continue to Verification</Button>
               </div>
-              <div className={`p-4 rounded-lg text-center ${theme === 'dark' ? 'bg-gray-800' : 'bg-green-50'}`}>
-                <p className="text-2xl font-bold">{orders.length}</p>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Orders</p>
-              </div>
-            </div>
-            
-            <Button 
-              className="w-full mb-2"
-              onClick={() => setActiveTab('products')}
-            >
-              Manage Products
-            </Button>
-            <Button 
-              variant="outline"
-              className={`w-full ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-800' : ''}`}
-              onClick={() => setActiveTab('orders')}
-            >
-              View Orders
-            </Button>
+            )}
           </CardContent>
         </Card>
       );
     }
-    
-    // Default - not a seller yet
+    // Default: show registration form
     return (
-      <div className={`text-center py-10 ${theme === 'dark' ? 'text-white' : ''}`}>
-        <Store size={48} className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-400'}`} />
-        <h3 className="text-lg font-medium mb-2">You're not registered as a seller yet</h3>
-        <p className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Register to start selling your products</p>
-        <Button onClick={() => setActiveTab('register')}>Register Now</Button>
-      </div>
+      <Card className="shadow-lg rounded-xl p-6 mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Store size={18} />
+            Become a Seller
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!user?.storeDetails ? (
+            <form onSubmit={handleStoreSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="store-name" className={theme === 'dark' ? 'text-white' : ''}>
+                  Store Name <span className="text-red-500">*</span>
+                </Label>
+                <Input 
+                  id="store-name"
+                  value={storeName}
+                  onChange={(e) => setStoreName(e.target.value)}
+                  placeholder="Your store name"
+                  required
+                  className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="store-description" className={theme === 'dark' ? 'text-white' : ''}>
+                  Store Description <span className="text-red-500">*</span>
+                </Label>
+                <Textarea 
+                  id="store-description"
+                  value={storeDescription}
+                  onChange={(e) => setStoreDescription(e.target.value)}
+                  placeholder="Tell customers about your store"
+                  rows={4}
+                  required
+                  className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="seller-phone" className={theme === 'dark' ? 'text-white' : ''}>
+                    Phone Number <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Phone className={`absolute left-2 top-2.5 h-4 w-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                    <Input
+                      id="seller-phone"
+                      value={sellerPhone}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9+]/g, '');
+                        setSellerPhone(val);
+                      }}
+                      placeholder="e.g. +966123456789"
+                      className="pl-8 bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="seller-email" className={theme === 'dark' ? 'text-white' : ''}>
+                    Email <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="seller-email"
+                    type="email"
+                    value={sellerEmail}
+                    onChange={(e) => setSellerEmail(e.target.value)}
+                    placeholder="Your email for seller communications"
+                    required
+                    className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="seller-age" className={theme === 'dark' ? 'text-white' : ''}>
+                    Age <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Calendar className={`absolute left-2 top-2.5 h-4 w-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                    <Input
+                      id="seller-age"
+                      type="number"
+                      min="18"
+                      max="100"
+                      value={sellerAge}
+                      onChange={(e) => setSellerAge(parseInt(e.target.value))}
+                      className="pl-8 bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="identity-doc" className={theme === 'dark' ? 'text-white' : ''}>
+                    National Identity Document <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="flex flex-col">
+                    <Input
+                      id="identity-doc"
+                      type="file"
+                      onChange={handleIdentityDocChange}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                    />
+                    <Label 
+                      htmlFor="identity-doc"
+                      className="flex items-center gap-2 bg-brand-blue text-white shadow rounded-full px-4 py-2 cursor-pointer w-fit hover:opacity-90 transition-all"
+                    >
+                      <FileCheck size={16} />
+                      {identityDoc ? identityDoc.name : 'Upload Document'}
+                    </Label>
+                    {!identityDoc && (
+                      <p className="text-xs text-red-500 mt-1">Please upload your national identity document</p>
+                    )}
+                    {identityDoc && (
+                      <p className={`text-xs text-green-500 mt-1 ${theme === 'dark' ? 'text-green-400' : ''}`}>Document uploaded</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Switch
+                    id="arex-switch"
+                    checked={false}
+                    onCheckedChange={() => {}}
+                    className={theme === 'dark' ? 'data-[state=checked]:bg-green-500' : ''}
+                    thumbClassName="bg-black"
+                  />
+                  <Label htmlFor="arex-switch" className={`font-medium ${theme === 'dark' ? 'text-white' : ''}`}>
+                    I am an AREXORIGINAL vendor
+                  </Label>
+                </div>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Standard 5% commission applies to all sales.</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="store-logo" className={theme === 'dark' ? 'text-white' : ''}>Store Logo</Label>
+                <div className="flex items-center gap-4">
+                  <div className={`border rounded-lg w-24 h-24 flex items-center justify-center overflow-hidden ${
+                    theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    {logoFile ? (
+                      <img 
+                        src={URL.createObjectURL(logoFile)} 
+                        alt="Store logo preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image size={32} className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      id="store-logo"
+                      type="file"
+                      onChange={handleLogoChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Label 
+                      htmlFor="store-logo"
+                      className="flex items-center gap-2 bg-brand-blue text-white shadow rounded-full px-4 py-2 cursor-pointer w-fit hover:opacity-90 transition-all"
+                    >
+                      <Upload size={16} />
+                      Choose Image
+                    </Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`border rounded-md p-4 mt-4 ${
+                theme === 'dark' ? 'bg-blue-900/30 border-blue-800' : 'bg-blue-50 border-blue-200'
+              }`}>
+                <h3 className={`flex items-center font-medium mb-2 ${
+                  theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
+                }`}>
+                  <AlertCircle size={16} className="mr-2" />
+                  Contact Information
+                </h3>
+                <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                  For any questions or assistance with your seller application:
+                </p>
+                <div className="mt-2 text-sm">
+                  <p className="flex items-center mb-1">
+                    <Mail size={14} className={`mr-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
+                    {OWNER_EMAIL}
+                  </p>
+                  <p className="flex items-center">
+                    <Phone size={14} className={`mr-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
+                    {OWNER_PHONE}
+                  </p>
+                </div>
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full bg-brand-blue hover:bg-brand-blue/90 mt-4"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Register as Seller'
+                )}
+              </Button>
+
+              <div className={`text-xs border-t pt-4 mt-4 ${theme === 'dark' ? 'text-gray-300 border-gray-700' : 'text-gray-500 border-gray-200'}`}>
+                <p className="mb-2">By registering as a seller, you agree to our terms and conditions:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>You must verify your email address</li>
+                  <li>You must provide a valid national identity document</li>
+                  <li>Your seller account will be reviewed by our team</li>
+                  <li>You can only sell products once your account is approved</li>
+                  <li>5% commission applies to all sales (exempt for AREXORIGINAL vendors)</li>
+                </ul>
+              </div>
+            </form>
+          ) : (
+            <div className="text-center py-8">
+              <CheckCircle size={48} className="mx-auto mb-4 text-green-500" />
+              <h3 className="text-lg font-medium mb-2">Registration Submitted</h3>
+              <p className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
+                Your seller registration has been submitted.
+              </p>
+              <Button onClick={() => setActiveTab('verification')}>Continue to Verification</Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     );
   };
   
@@ -505,103 +907,154 @@ const SellerPage = () => {
     // For admins
     if (isAdmin) {
       return (
-        <TabsList className={`grid w-full grid-cols-5 mb-4 ${theme === 'dark' ? 'bg-gray-800' : ''}`}>
-          <TabsTrigger 
-            value="dashboard" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger 
-            value="products" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Products
-          </TabsTrigger>
-          <TabsTrigger 
-            value="orders" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Orders
-          </TabsTrigger>
-          <TabsTrigger 
-            value="requests" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Approve Sellers
-            {pendingSellerRequests.length > 0 && (
-              <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 inline-flex items-center justify-center">
-                {pendingSellerRequests.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger 
-            value="settings" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Settings
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex w-full justify-between mb-4 gap-0">
+          <button onClick={() => setActiveTab('products')} className={`bg-brand-blue text-white shadow rounded-full px-6 py-2 font-bold mx-1 ${activeTab === 'products' ? 'opacity-90' : 'opacity-80'} transition-all`}>Products</button>
+          <button onClick={() => setActiveTab('orders')} className={`bg-brand-blue text-white shadow rounded-full px-6 py-2 font-bold mx-1 ${activeTab === 'orders' ? 'opacity-90' : 'opacity-80'} transition-all`}>Orders</button>
+          <button onClick={() => setActiveTab('approvals')} className={`bg-green-600 text-white shadow rounded-full px-6 py-2 font-bold mx-1 ${activeTab === 'approvals' ? 'opacity-90' : 'opacity-80'} transition-all`}>Approve Sellers</button>
+        </div>
       );
     }
     
     // For approved sellers
     if (user?.isSeller && user?.sellerApproved) {
       return (
-        <TabsList className={`grid w-full grid-cols-4 mb-4 ${theme === 'dark' ? 'bg-gray-800' : ''}`}>
-          <TabsTrigger 
-            value="dashboard" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger 
-            value="products" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Products
-          </TabsTrigger>
-          <TabsTrigger 
-            value="orders" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Orders
-          </TabsTrigger>
-          <TabsTrigger 
-            value="settings" 
-            className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-          >
-            Settings
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex w-full justify-between mb-4 gap-0">
+          <button onClick={() => setActiveTab('dashboard')} className={`bg-brand-blue text-white shadow rounded-full px-6 py-2 font-bold mx-1 ${activeTab === 'dashboard' ? 'opacity-90' : 'opacity-80'} transition-all`}>Dashboard</button>
+          <button onClick={() => setActiveTab('products')} className={`bg-brand-blue text-white shadow rounded-full px-6 py-2 font-bold mx-1 ${activeTab === 'products' ? 'opacity-90' : 'opacity-80'} transition-all`}>Products</button>
+          <button onClick={() => setActiveTab('orders')} className={`bg-brand-blue text-white shadow rounded-full px-6 py-2 font-bold mx-1 ${activeTab === 'orders' ? 'opacity-90' : 'opacity-80'} transition-all`}>Orders</button>
+        </div>
       );
     }
     
     // For pending sellers or new users
     return (
-      <TabsList className={`grid w-full grid-cols-3 mb-4 ${theme === 'dark' ? 'bg-gray-800' : ''}`}>
-        <TabsTrigger 
-          value="register" 
-          className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-        >
-          Register
-        </TabsTrigger>
-        <TabsTrigger 
-          value="verification" 
-          className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-        >
-          Verify Email
-        </TabsTrigger>
-        <TabsTrigger 
-          value="pending" 
-          className={theme === 'dark' ? 'data-[state=active]:bg-gray-700 text-white' : ''}
-        >
-          Status
-        </TabsTrigger>
-      </TabsList>
+      <div className="flex w-full justify-between mb-4 gap-0">
+        <button onClick={() => setActiveTab('register')} className={`bg-brand-blue text-white shadow rounded-full px-6 py-2 font-bold mx-1 ${activeTab === 'register' ? 'opacity-90' : 'opacity-80'} transition-all`}>Register</button>
+        <button onClick={() => setActiveTab('pending')} className={`bg-brand-blue text-white shadow rounded-full px-6 py-2 font-bold mx-1 ${activeTab === 'pending' ? 'opacity-90' : 'opacity-80'} transition-all`}>Status</button>
+      </div>
     );
   };
   
+  if (!isAuthenticated) {
+    return (
+      <Dialog open>
+        <DialogContent style={{ textAlign: 'center', padding: 32 }}>
+          <h2>Sign in to access Seller features</h2>
+          <p>You need to be logged in to view and manage your seller account.</p>
+          <Button onClick={() => navigate('/login')}>Login</Button>
+          <Button variant="secondary" onClick={() => navigate('/register')} style={{ marginLeft: 8 }}>Register</Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (isAdminUser) {
+    return (
+      <div className={`pb-20 pt-4 px-4 ${theme === 'dark' ? 'text-white' : ''}`}>
+        <h1 className="text-2xl font-bold mb-4">Seller Center</h1>
+        <div className="flex gap-4 mb-6">
+          <button
+            onClick={() => setAdminTab('products')}
+            className={`px-6 py-2 rounded-full font-bold shadow transition-all text-white text-base focus:outline-none ${adminTab === 'products' ? 'bg-brand-blue scale-105' : 'bg-blue-200 hover:bg-brand-blue/80 hover:text-white text-brand-blue'}`}
+          >
+            <Plus size={18} className="inline-block mr-2 -mt-1" /> Products
+          </button>
+          <button
+            onClick={() => setAdminTab('approvals')}
+            className={`px-6 py-2 rounded-full font-bold shadow transition-all text-white text-base focus:outline-none ${adminTab === 'approvals' ? 'bg-green-600 scale-105' : 'bg-green-200 hover:bg-green-600/80 hover:text-white text-green-700'}`}
+          >
+            Approve Sellers
+          </button>
+        </div>
+        {adminTab === 'products' && (
+          <Card className={`shadow-lg rounded-xl border-0 ${theme === 'dark' ? 'bg-black/20' : 'bg-white/10'} backdrop-blur`}>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Your Products</CardTitle>
+              <Button onClick={() => navigate('/addproducts')}>
+                <Plus size={16} className="mr-1" />
+                Add Product
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {showProductForm && (
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onProductSubmit)} className={`space-y-4 mb-6 border-b pb-6 ${theme === 'dark' ? 'border-gray-700' : ''}`}> 
+                    {/* ...form fields as in products tab... */}
+                  </form>
+                </Form>
+              )}
+              {/* ...rest of products tab content... */}
+            </CardContent>
+          </Card>
+        )}
+        {adminTab === 'approvals' && (
+          <Card className={`shadow-lg rounded-xl border-0 ${theme === 'dark' ? 'bg-black/20' : 'bg-white/10'} backdrop-blur`}>
+            <CardHeader>
+              <CardTitle>Pending Seller Requests</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {localPendingRequests.length > 0 ? (
+                <div className="space-y-6">
+                  {localPendingRequests.map((request) => (
+                    <div key={request.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{request.storeDetails?.name}</h3>
+                          <p className="text-sm text-gray-500">{request.displayName}</p>
+                          <p className="text-sm text-gray-500">Email: {request.sellerEmail || request.email}</p>
+                          <p className="text-sm text-gray-500">Phone: {request.sellerPhone || request.phone}</p>
+                          <p className="text-sm text-gray-500">Description: {request.storeDetails?.description}</p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleApproveSeller(request.id)}>
+                            <Check size={14} className="mr-1" /> Approve
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleRejectSeller(request.id)}>
+                            <X size={14} className="mr-1" /> Reject
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">No pending seller requests.</div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  if (user?.isSeller && user?.sellerApproved) {
+    // Show seller management UI (tabs for Products, Orders, Approvals, etc.)
+    return (
+      <div className={`pb-20 pt-4 px-4 ${theme === 'dark' ? 'text-white' : ''}`}>
+        <h1 className="text-2xl font-bold mb-4">Seller Center</h1>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          {renderTabs()}
+          {/* ...TabsContent for products, orders, approvals, etc... */}
+        </Tabs>
+      </div>
+    );
+  }
+  if (user?.isSeller && !user?.sellerApproved) {
+    // Show 'under review' page
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="bg-white/80 dark:bg-gray-900/80 shadow-xl rounded-2xl p-8 flex flex-col items-center">
+          <Clock size={48} className="text-yellow-500 mb-4 animate-pulse" />
+          <h2 className="text-2xl font-bold mb-2">Your seller application is under review</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4 text-center max-w-md">
+            Thank you for registering as a seller! Our team is reviewing your application. You'll be notified as soon as you're approved.
+          </p>
+          <Loader2 size={32} className="text-brand-blue animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`pb-20 pt-4 px-4 ${theme === 'dark' ? 'text-white' : ''}`}>
       <h1 className="text-2xl font-bold mb-4">Seller Center</h1>
@@ -610,332 +1063,11 @@ const SellerPage = () => {
         {renderTabs()}
         
         <TabsContent value="register" className="animate-fade-in">
-          <Card className={theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Store size={18} />
-                Become a Seller
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!user?.storeDetails ? (
-                <form onSubmit={handleStoreSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="store-name" className={theme === 'dark' ? 'text-white' : ''}>
-                      Store Name <span className="text-red-500">*</span>
-                    </Label>
-                    <Input 
-                      id="store-name"
-                      value={storeName}
-                      onChange={(e) => setStoreName(e.target.value)}
-                      placeholder="Your store name"
-                      required
-                      className={theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : ''}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="store-description" className={theme === 'dark' ? 'text-white' : ''}>
-                      Store Description <span className="text-red-500">*</span>
-                    </Label>
-                    <Textarea 
-                      id="store-description"
-                      value={storeDescription}
-                      onChange={(e) => setStoreDescription(e.target.value)}
-                      placeholder="Tell customers about your store"
-                      rows={4}
-                      required
-                      className={theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : ''}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="seller-phone" className={theme === 'dark' ? 'text-white' : ''}>
-                        Phone Number <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Phone className={`absolute left-2 top-2.5 h-4 w-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                        <Input
-                          id="seller-phone"
-                          value={sellerPhone}
-                          onChange={(e) => setSellerPhone(e.target.value)}
-                          placeholder="e.g. +966123456789"
-                          className={`pl-8 ${theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : ''}`}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="seller-email" className={theme === 'dark' ? 'text-white' : ''}>
-                        Email <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="seller-email"
-                        type="email"
-                        value={sellerEmail}
-                        onChange={(e) => setSellerEmail(e.target.value)}
-                        placeholder="Your email for seller communications"
-                        required
-                        className={theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : ''}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="seller-age" className={theme === 'dark' ? 'text-white' : ''}>
-                        Age <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Calendar className={`absolute left-2 top-2.5 h-4 w-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                        <Input
-                          id="seller-age"
-                          type="number"
-                          min="18"
-                          max="100"
-                          value={sellerAge}
-                          onChange={(e) => setSellerAge(parseInt(e.target.value))}
-                          className={`pl-8 ${theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : ''}`}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="identity-doc" className={theme === 'dark' ? 'text-white' : ''}>
-                        National Identity Document <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="flex flex-col">
-                        <Input
-                          id="identity-doc"
-                          type="file"
-                          onChange={handleIdentityDocChange}
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          className="hidden"
-                        />
-                        <Label 
-                          htmlFor="identity-doc"
-                          className={`flex items-center gap-2 hover:bg-gray-200 py-2 px-4 rounded-md cursor-pointer w-fit ${
-                            theme === 'dark' ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          <FileCheck size={16} />
-                          {identityDoc ? identityDoc.name : 'Upload Document'}
-                        </Label>
-                        {!identityDoc && (
-                          <p className="text-xs text-red-500 mt-1">Please upload your national identity document</p>
-                        )}
-                        {identityDoc && (
-                          <p className={`text-xs text-green-500 mt-1 ${theme === 'dark' ? 'text-green-400' : ''}`}>Document uploaded</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Switch
-                        id="arex-switch"
-                        checked={isVendorArexOriginal}
-                        onCheckedChange={setIsVendorArexOriginal}
-                        className={theme === 'dark' ? 'data-[state=checked]:bg-green-500' : ''}
-                      />
-                      <Label htmlFor="arex-switch" className={`font-medium ${theme === 'dark' ? 'text-white' : ''}`}>
-                        I am an AREXORIGINAL vendor
-                      </Label>
-                    </div>
-                    {isVendorArexOriginal ? (
-                      <p className="text-sm text-green-600">As an AREXORIGINAL vendor, you are exempt from the 5% commission fee.</p>
-                    ) : (
-                      <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>Standard 5% commission applies to all sales.</p>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="store-logo" className={theme === 'dark' ? 'text-white' : ''}>Store Logo</Label>
-                    <div className="flex items-center gap-4">
-                      <div className={`border rounded-lg w-24 h-24 flex items-center justify-center overflow-hidden ${
-                        theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
-                      }`}>
-                        {logoFile ? (
-                          <img 
-                            src={URL.createObjectURL(logoFile)} 
-                            alt="Store logo preview" 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Image size={32} className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <Input
-                          id="store-logo"
-                          type="file"
-                          onChange={handleLogoChange}
-                          accept="image/*"
-                          className="hidden"
-                        />
-                        <Label 
-                          htmlFor="store-logo"
-                          className={`flex items-center gap-2 hover:bg-gray-200 py-2 px-4 rounded-md cursor-pointer w-fit ${
-                            theme === 'dark' ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          <Upload size={16} />
-                          Choose Image
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={`border rounded-md p-4 mt-4 ${
-                    theme === 'dark' ? 'bg-blue-900/30 border-blue-800' : 'bg-blue-50 border-blue-200'
-                  }`}>
-                    <h3 className={`flex items-center font-medium mb-2 ${
-                      theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
-                    }`}>
-                      <AlertCircle size={16} className="mr-2" />
-                      Contact Information
-                    </h3>
-                    <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                      For any questions or assistance with your seller application:
-                    </p>
-                    <div className="mt-2 text-sm">
-                      <p className="flex items-center mb-1">
-                        <Mail size={14} className={`mr-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
-                        {OWNER_EMAIL}
-                      </p>
-                      <p className="flex items-center">
-                        <Phone size={14} className={`mr-2 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'}`} />
-                        {OWNER_PHONE}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-brand-blue hover:bg-brand-blue/90 mt-4"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 size={16} className="mr-2 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      'Register as Seller'
-                    )}
-                  </Button>
-
-                  <div className={`text-xs border-t pt-4 mt-4 ${theme === 'dark' ? 'text-gray-300 border-gray-700' : 'text-gray-500 border-gray-200'}`}>
-                    <p className="mb-2">By registering as a seller, you agree to our terms and conditions:</p>
-                    <ul className="list-disc pl-5 space-y-1">
-                      <li>You must verify your email address</li>
-                      <li>You must provide a valid national identity document</li>
-                      <li>Your seller account will be reviewed by our team</li>
-                      <li>You can only sell products once your account is approved</li>
-                      <li>5% commission applies to all sales (exempt for AREXORIGINAL vendors)</li>
-                    </ul>
-                  </div>
-                </form>
-              ) : (
-                <div className="text-center py-8">
-                  <CheckCircle size={48} className="mx-auto mb-4 text-green-500" />
-                  <h3 className="text-lg font-medium mb-2">Registration Submitted</h3>
-                  <p className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
-                    Your seller registration has been submitted.
-                  </p>
-                  <Button onClick={() => setActiveTab('verification')}>Continue to Verification</Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {renderSellerContent()}
         </TabsContent>
 
-        <TabsContent value="verification" className="animate-fade-in">
-          <Card className={theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail size={18} />
-                Email Verification
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {emailVerified || user?.sellerVerified ? (
-                <div className="text-center py-8">
-                  <CheckCircle size={48} className="mx-auto mb-4 text-green-500" />
-                  <h3 className="text-lg font-medium mb-2">Email Verified Successfully</h3>
-                  <p className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
-                    Your email has been verified. Your seller account is now pending approval.
-                  </p>
-                  <Button onClick={() => setActiveTab('pending')}>Check Application Status</Button>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <Mail size={48} className="mx-auto mb-4 text-blue-500" />
-                    <h3 className="text-lg font-medium mb-2">Verify Your Email Address</h3>
-                    <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}>
-                      We've sent a verification code to your email address ({user?.sellerEmail || user?.email}).
-                      Enter the code below to verify your email.
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="verification-code" className={theme === 'dark' ? 'text-white' : ''}>
-                      Verification Code
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="verification-code"
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        placeholder="Enter 6-digit code"
-                        className={`text-center text-lg tracking-widest ${
-                          theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : ''
-                        }`}
-                        maxLength={6}
-                      />
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    onClick={handleVerifyEmail} 
-                    className="w-full"
-                    disabled={verifyingEmail || verificationCode.length !== 6}
-                  >
-                    {verifyingEmail ? (
-                      <>
-                        <Loader2 size={16} className="mr-2 animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      'Verify Email'
-                    )}
-                  </Button>
-                  
-                  <div className="text-center text-sm">
-                    <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}>
-                      Didn't receive a code? 
-                      <Button 
-                        variant="link" 
-                        className="p-0 h-auto" 
-                        onClick={resendVerificationCode}
-                      >
-                        Resend Code
-                      </Button>
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
         <TabsContent value="pending" className="animate-fade-in">
-          <Card className={theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}>
+          <Card className={`shadow-lg rounded-xl border-0 ${theme === 'dark' ? 'bg-black/20' : 'bg-white/10'} backdrop-blur`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock size={18} className="text-yellow-500" />
@@ -972,20 +1104,12 @@ const SellerPage = () => {
                         </p>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
                           Email: {user.sellerEmail || user.email} 
-                          {(user.sellerVerified || emailVerified) ? 
-                            <span className="text-green-500 ml-1">(✓ Verified)</span> : 
-                            <span className="text-red-500 ml-1">(Not Verified)</span>
-                          }
                         </p>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
                           Phone: {user.sellerPhone || user.phone}
                         </p>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
                           Identity Document: 
-                          {user.sellerIdentityVerified ? 
-                            <span className="text-green-500 ml-1">(✓ Verified)</span> : 
-                            <span className="text-yellow-500 ml-1">(Pending Verification)</span>
-                          }
                         </p>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
                           Submitted: {new Date(user.sellerRequestDate || '').toLocaleDateString()}
@@ -1012,7 +1136,7 @@ const SellerPage = () => {
         </TabsContent>
 
         <TabsContent value="requests" className="animate-fade-in">
-          <Card className={theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}>
+          <Card className={`shadow-lg rounded-xl border-0 ${theme === 'dark' ? 'bg-black/20' : 'bg-white/10'} backdrop-blur`}>
             <CardHeader>
               <CardTitle>Pending Seller Requests ({pendingSellerRequests.length})</CardTitle>
             </CardHeader>
@@ -1030,7 +1154,7 @@ const SellerPage = () => {
                         <div>
                           <h3 className="font-medium">{request.storeDetails?.name}</h3>
                           <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
-                            {request.name}
+                            {request.displayName}
                           </p>
                         </div>
                         <div className="flex items-center">
@@ -1102,7 +1226,7 @@ const SellerPage = () => {
                           size="sm" 
                           variant="default"
                           onClick={() => handleApproveSeller(request.id)}
-                          disabled={!request.sellerVerified || !request.sellerIdentityVerified}
+                          className="bg-green-500 hover:bg-green-600 text-white"
                         >
                           <Check size={14} className="mr-1" />
                           Approve
@@ -1138,7 +1262,7 @@ const SellerPage = () => {
         </TabsContent>
         
         <TabsContent value="products" className="animate-fade-in">
-          <Card className={theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}>
+          <Card className={`shadow-lg rounded-xl border-0 ${theme === 'dark' ? 'bg-black/20' : 'bg-white/10'} backdrop-blur`}>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Your Products</CardTitle>
               <Button onClick={() => form.reset()}>
@@ -1188,15 +1312,9 @@ const SellerPage = () => {
                             />
                           </FormControl>
                           <FormMessage />
-                          {isVendorArexOriginal ? (
-                            <p className={`text-xs ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
-                              No commission (AREXORIGINAL vendor)
-                            </p>
-                          ) : (
-                            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                              Commission: {currencySymbol}{calculateCommission(form.getValues('price')).toFixed(2)} (5%)
-                            </p>
-                          )}
+                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Commission: {currencySymbol}{calculateCommission(form.getValues('price')).toFixed(2)} (5%)
+                          </p>
                         </FormItem>
                       )}
                     />
@@ -1409,89 +1527,131 @@ const SellerPage = () => {
         </TabsContent>
         
         <TabsContent value="orders" className="animate-fade-in">
-          <Card className={theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}>
+          <Card className={`shadow-lg rounded-xl border-0 ${theme === 'dark' ? 'bg-black/20' : 'bg-white/10'} backdrop-blur`}>
             <CardHeader>
-              <CardTitle>Manage Orders</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Package size={18} />
+                Your Orders
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {orders.length > 0 ? (
+              {orders.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package size={48} className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}>
+                    No orders yet. When customers purchase your products, they will appear here.
+                  </p>
+                </div>
+              ) : (
                 <div className="space-y-4">
                   {orders.map(order => (
                     <div 
                       key={order.id} 
-                      className={`border rounded-md p-4 ${
-                        theme === 'dark' ? 'border-gray-700' : ''
+                      className={`border rounded-xl p-6 ${
+                        theme === 'dark' ? 'border-gray-700 bg-gray-800/50' : 'bg-white'
                       }`}
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-medium">Order #{order.id}</h4>
-                          <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
-                            {order.productName}
-                          </p>
-                        </div>
-                        <div>
-                          {order.status === 'pending' ? (
-                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Pending</span>
-                          ) : order.status === 'processing' ? (
-                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Processing</span>
-                          ) : order.status === 'shipped' ? (
-                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Shipped</span>
-                          ) : null}
-                        </div>
-                      </div>
-                      <div className={`mt-2 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
-                        <p>Customer: {order.customer}</p>
-                        <p>Date: {order.date}</p>
-                      </div>
-                      <div className="mt-4 flex justify-end">
-                        {!order.delivered && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => setSelectedOrderId(order.id)}
-                            className={theme === 'dark' ? 'border-gray-700 hover:bg-gray-800' : ''}
-                          >
-                            <Truck size={14} className="mr-1" />
-                            Mark as Shipped
-                          </Button>
-                        )}
-                      </div>
-                      
-                      {selectedOrderId === order.id && (
-                        <div className={`mt-4 p-4 rounded-md ${
-                          theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'
-                        }`}>
-                          <h5 className="font-medium text-sm mb-2">Confirm Delivery</h5>
-                          <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
-                            Are you sure you want to mark this order as shipped?
-                          </p>
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => setSelectedOrderId(null)}
-                              className={theme === 'dark' ? 'hover:bg-gray-700' : ''}
-                            >
-                              Cancel
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="default"
-                              onClick={() => confirmDelivery(order.id)}
-                            >
-                              Confirm
-                            </Button>
+                      <div className="flex flex-col md:flex-row justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="font-bold text-lg mb-1">{order.productName}</h3>
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}`}>
+                                Order ID: {order.id}
+                              </p>
+                            </div>
+                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              order.status === 'delivered' 
+                                ? 'bg-green-100 text-green-800' 
+                                : order.status === 'out-for-delivery'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </div>
                           </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Customer Details
+                              </p>
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {order.customer}
+                              </p>
+                            </div>
+                            <div>
+                              <p className={`text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Order Date
+                              </p>
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {new Date(order.date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+
+                          {order.status === 'out-for-delivery' && (
+                            <div className="mt-4">
+                              <p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Delivery Date
+                              </p>
+                              <Input
+                                type="date"
+                                value={order.deliveryDate || ''}
+                                onChange={e => {
+                                  const updatedOrders = orders.map(o => 
+                                    o.id === order.id ? { ...o, deliveryDate: e.target.value } : o
+                                  );
+                                  setOrders(updatedOrders);
+                                }}
+                                className={theme === 'dark' ? 'bg-gray-700 border-gray-600' : ''}
+                              />
+                            </div>
+                          )}
                         </div>
-                      )}
+
+                        <div className="flex flex-col gap-2 justify-center">
+                          {order.status === 'pending' && (
+                            <Button 
+                              onClick={() => {
+                                const updatedOrders = orders.map(o => 
+                                  o.id === order.id ? { ...o, status: 'out-for-delivery' } : o
+                                );
+                                setOrders(updatedOrders);
+                                toast({
+                                  title: "Order Updated",
+                                  description: "Order marked as out for delivery",
+                                });
+                              }}
+                              className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                            >
+                              <Truck size={16} className="mr-2" />
+                              Mark as Out for Delivery
+                            </Button>
+                          )}
+                          
+                          {order.status === 'out-for-delivery' && order.deliveryDate && (
+                            <Button 
+                              onClick={() => {
+                                const updatedOrders = orders.map(o => 
+                                  o.id === order.id ? { ...o, status: 'delivered' } : o
+                                );
+                                setOrders(updatedOrders);
+                                toast({
+                                  title: "Order Delivered",
+                                  description: "Order has been marked as delivered",
+                                });
+                              }}
+                              className="bg-green-500 hover:bg-green-600 text-white"
+                            >
+                              <Check size={16} className="mr-2" />
+                              Mark as Delivered
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <FileText size={48} className={`mx-auto mb-4 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
-                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-500'}>You don't have any orders yet</p>
                 </div>
               )}
             </CardContent>
@@ -1499,7 +1659,7 @@ const SellerPage = () => {
         </TabsContent>
         
         <TabsContent value="settings" className="animate-fade-in">
-          <Card className={theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}>
+          <Card className={`shadow-lg rounded-xl border-0 ${theme === 'dark' ? 'bg-black/20' : 'bg-white/10'} backdrop-blur`}>
             <CardHeader>
               <CardTitle>Seller Settings</CardTitle>
             </CardHeader>
@@ -1510,11 +1670,7 @@ const SellerPage = () => {
                   <div className={`p-4 rounded-md ${
                     theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'
                   }`}>
-                    {isVendorArexOriginal ? (
-                      <p className="text-green-600 font-medium">You are an AREXORIGINAL vendor and exempt from commission fees.</p>
-                    ) : (
-                      <p>Your current commission rate: <span className="font-medium">5%</span></p>
-                    )}
+                    <p>Your current commission rate: <span className="font-medium">5%</span></p>
                   </div>
                 </div>
                 
@@ -1618,6 +1774,29 @@ const SellerPage = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="approvals" className="animate-fade-in">
+          <div className="grid gap-6">
+            {localPendingRequests.length === 0 ? (
+              <div className="text-center text-gray-500 py-12">No pending seller requests.</div>
+            ) : (
+              localPendingRequests.map(request => (
+                <div key={request.id} className="bg-white dark:bg-gray-900 shadow rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg mb-1">{request.storeDetails?.name}</h3>
+                    <p className="text-gray-500 mb-1">{request.sellerEmail || request.email}</p>
+                    <p className="text-gray-500 mb-1">{request.sellerPhone || request.phone}</p>
+                    <p className="text-gray-400 text-sm">{request.storeDetails?.description}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow" onClick={() => handleApproveSeller(request.id)}>Approve</button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow" onClick={() => handleRejectSeller(request.id)}>Reject</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

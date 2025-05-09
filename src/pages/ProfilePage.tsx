@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { useOrder } from '@/context/OrderContext';
 import { LogOut, Package, ChevronRight, User, CreditCard, Settings } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, updateUserProfile } = useAuth();
   const { orders } = useOrder();
+  const { toast } = useToast();
+  const [modal, setModal] = React.useState<null | 'personal' | 'payment' | 'address' | 'settings'>(null);
+  const [editName, setEditName] = React.useState(user?.displayName || '');
+  const [editPhone, setEditPhone] = React.useState(user?.phone || '');
   
   if (!isAuthenticated) {
     navigate('/login');
@@ -30,7 +36,7 @@ const ProfilePage = () => {
             <User size={32} />
           </div>
           <div>
-            <h1 className="font-bold text-xl">{user?.name || 'User'}</h1>
+            <h1 className="font-bold text-xl">{user?.displayName || 'User'}</h1>
             <p className="opacity-80 text-sm">{user?.email}</p>
           </div>
         </div>
@@ -39,8 +45,17 @@ const ProfilePage = () => {
             variant="secondary" 
             size="sm" 
             className="bg-white/20 text-white hover:bg-white/30"
+            onClick={() => navigate('/profile/edit')}
           >
             Edit Profile
+          </Button>
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="bg-white/20 text-white hover:bg-white/30"
+            onClick={() => navigate('/history')}
+          >
+            History
           </Button>
           <Button 
             variant="secondary" 
@@ -79,7 +94,7 @@ const ProfilePage = () => {
                       <div>
                         <p className="font-medium text-sm">Order #{order.id.substr(-6)}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(order.orderDate).toLocaleDateString()}
+                          {new Date(order.date).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -117,27 +132,67 @@ const ProfilePage = () => {
             <MenuItem 
               icon={<User size={18} />}
               title="Personal Information"
-              onClick={() => navigate('/profile/edit')}
+              onClick={() => navigate('/personal-info')}
             />
             <MenuItem 
               icon={<CreditCard size={18} />}
               title="Payment Methods"
-              onClick={() => navigate('/profile/payment')}
+              onClick={() => navigate('/payment-methods')}
             />
             <MenuItem 
               icon={<Package size={18} />}
               title="Shipping Addresses"
-              onClick={() => navigate('/profile/address')}
+              onClick={() => navigate('/shipping-addresses')}
             />
             <MenuItem 
               icon={<Settings size={18} />}
               title="Settings"
-              onClick={() => navigate('/profile/settings')}
+              onClick={() => navigate('/settings')}
               noBorder
             />
           </CardContent>
         </Card>
       </div>
+      {/* Modals for editing */}
+      <Dialog open={modal === 'personal'}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Personal Information</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Name" />
+            <Input value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="Phone" />
+          </div>
+          <DialogFooter>
+            <Button onClick={async () => { await updateUserProfile({ phone: editPhone }); toast({ title: 'Profile updated (name change is demo only)' }); setModal(null); }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={modal === 'payment'}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Payment Methods</DialogTitle></DialogHeader>
+          <div className="space-y-2">(Demo: Add payment method fields here)</div>
+          <DialogFooter>
+            <Button onClick={() => { toast({ title: 'Payment methods updated' }); setModal(null); }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={modal === 'address'}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Shipping Addresses</DialogTitle></DialogHeader>
+          <div className="space-y-2">(Demo: Add address fields here)</div>
+          <DialogFooter>
+            <Button onClick={() => { toast({ title: 'Shipping address updated' }); setModal(null); }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={modal === 'settings'}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Settings</DialogTitle></DialogHeader>
+          <div className="space-y-2">(Demo: Add settings fields here)</div>
+          <DialogFooter>
+            <Button onClick={() => { toast({ title: 'Settings updated' }); setModal(null); }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

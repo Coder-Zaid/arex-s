@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
 // Define translation type
@@ -165,7 +164,7 @@ export const useAppSettings = () => {
 };
 
 export const AppSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<string>('ar');
+  const [language, setLanguage] = useState<string>('en');
   const [currency, setCurrency] = useState<string>('SAR');
   const currencySymbol = currencySymbols[currency as keyof typeof currencySymbols] || 'ر.س';
   const isRtl = language === 'ar';

@@ -1,13 +1,27 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { User } from '../types';
+import { User, CustomUserData } from '../types';
 import { useToast } from '@/components/ui/use-toast';
+import { 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  OAuthProvider,
+  sendPasswordResetEmail
+} from 'firebase/auth';
+import { auth, googleProvider, appleProvider } from '../lib/firebase';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
+  updateUserProfile: (data: Partial<CustomUserData>) => Promise<void>;
   isAuthenticated: boolean;
   requestSellerAccount: (
     storeName: string, 
@@ -26,9 +40,10 @@ interface AuthContextType {
   resendVerificationCode: () => Promise<void>;
   ownerEmail: string;
   ownerPhone: string;
+  forgotPassword: (email: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -42,59 +57,137 @@ const mockUsers: User[] = [
   {
     id: '1',
     email: 'demo@example.com',
-    name: 'Demo User',
+    displayName: 'Demo User',
     address: '123 Tech Street, Silicon Valley',
-    phone: '123-456-7890'
+    phone: '123-456-7890',
+    emailVerified: true,
+    isAnonymous: false,
+    metadata: {},
+    phoneNumber: null,
+    photoURL: null,
+    providerData: [],
+    providerId: '',
+    refreshToken: '',
+    tenantId: null,
+    uid: '1',
+    delete: async () => {},
+    getIdToken: async () => '',
+    getIdTokenResult: async () => ({
+      token: '',
+      authTime: '',
+      issuedAtTime: '',
+      expirationTime: '',
+      signInProvider: null,
+      claims: {},
+      signInSecondFactor: null
+    }),
+    reload: async () => {},
+    toJSON: () => ({})
   },
   {
     id: 'admin1',
-    email: 'arex.ksa@gmail.com', // Updated owner email
-    name: 'Admin User',
+    email: 'arex.ksa@gmail.com',
+    displayName: 'Admin User',
     address: '456 Admin Street',
-    phone: '+966509738173', // Updated owner phone
+    phone: '+966509738173',
     isSeller: true,
     sellerVerified: true,
-    sellerApproved: true
+    sellerApproved: true,
+    emailVerified: true,
+    isAnonymous: false,
+    metadata: {},
+    phoneNumber: null,
+    photoURL: null,
+    providerData: [],
+    providerId: '',
+    refreshToken: '',
+    tenantId: null,
+    uid: 'admin1',
+    delete: async () => {},
+    getIdToken: async () => '',
+    getIdTokenResult: async () => ({
+      token: '',
+      authTime: '',
+      issuedAtTime: '',
+      expirationTime: '',
+      signInProvider: null,
+      claims: {},
+      signInSecondFactor: null
+    }),
+    reload: async () => {},
+    toJSON: () => ({})
   }
 ];
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingSellerRequests, setPendingSellerRequests] = useState<User[]>([]);
   const { toast } = useToast();
-  const ownerEmail = 'arex.ksa@gmail.com'; // Owner email
-  const ownerPhone = '+966509738173'; // Owner phone
+  const ownerEmail = 'arex.ksa@gmail.com';
+  const ownerPhone = '+966509738173';
 
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    
-    // Load pending seller requests from localStorage
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Get custom user data from localStorage or create new
+        const customData: CustomUserData = JSON.parse(localStorage.getItem(`userData_${firebaseUser.uid}`) || '{}') || {
+          id: firebaseUser.uid,
+          address: '',
+          phone: '',
+          isSeller: false,
+          sellerVerified: false,
+          sellerApproved: false
+        };
+
+        // Combine Firebase user with custom data
+        const user: User = {
+          ...firebaseUser,
+          ...customData
+        };
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
     const storedRequests = localStorage.getItem('pendingSellerRequests');
     if (storedRequests) {
       setPendingSellerRequests(JSON.parse(storedRequests));
     }
-    
-    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  useEffect(() => {
+    function handleStorageChange(event) {
+      if (event.key === 'pendingSellerRequests') {
+        const updated = event.newValue ? JSON.parse(event.newValue) : [];
+        setPendingSellerRequests(updated);
+      }
+    }
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const login = async (email: string, password: string, rememberMe: boolean = false) => {
     setLoading(true);
     try {
       // Simulate API request delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
       const foundUser = mockUsers.find(u => u.email === email);
       if (!foundUser) {
         throw new Error('User not found');
       }
-      
       setUser(foundUser);
-      localStorage.setItem('user', JSON.stringify(foundUser));
+      if (rememberMe) {
+        localStorage.setItem('user', JSON.stringify(foundUser));
+      } else {
+        sessionStorage.setItem('user', JSON.stringify(foundUser));
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +202,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newUser: User = {
         id: `user-${Date.now()}`,
         email,
-        name
+        displayName: name,
+        address: '',
+        phone: '',
+        isSeller: false,
+        sellerVerified: false,
+        sellerApproved: false,
+        emailVerified: false,
+        isAnonymous: false,
+        metadata: {},
+        phoneNumber: null,
+        photoURL: null,
+        providerData: [],
+        providerId: '',
+        refreshToken: '',
+        tenantId: null,
+        uid: `user-${Date.now()}`,
+        delete: async () => {},
+        getIdToken: async () => '',
+        getIdTokenResult: async () => ({
+          token: '',
+          authTime: '',
+          issuedAtTime: '',
+          expirationTime: '',
+          signInProvider: null,
+          claims: {},
+          signInSecondFactor: null
+        }),
+        reload: async () => {},
+        toJSON: () => ({})
       };
       
       // Add to mock users
@@ -122,9 +243,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
     localStorage.removeItem('user');
+    await signOut(auth);
   };
 
   const verifySellerEmail = async (code: string): Promise<boolean> => {
@@ -412,27 +534,103 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user: User = {
+        ...result.user,
+        id: result.user.uid,
+        address: '',
+        phone: '',
+        isSeller: false,
+        sellerVerified: false,
+        sellerApproved: false
+      };
+      setUser(user);
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      throw error;
+    }
+  };
+
+  const signInWithApple = async () => {
+    try {
+      const result = await signInWithPopup(auth, appleProvider);
+      const user: User = {
+        ...result.user,
+        id: result.user.uid,
+        address: '',
+        phone: '',
+        isSeller: false,
+        sellerVerified: false,
+        sellerApproved: false
+      };
+      setUser(user);
+    } catch (error) {
+      console.error('Apple sign-in error:', error);
+      throw error;
+    }
+  };
+
+  const updateUserProfile = async (data: Partial<CustomUserData>) => {
+    if (!user) return;
+    
+    try {
+      const updatedCustomData = { ...user, ...data };
+      localStorage.setItem(`userData_${user.uid}`, JSON.stringify(updatedCustomData));
+      
+      const updatedUser: User = {
+        ...user,
+        ...updatedCustomData
+      };
+      setUser(updatedUser);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      throw error;
+    }
+  };
+
+  const forgotPassword = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: 'Password Reset Email Sent',
+        description: 'Check your inbox for a password reset link.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send password reset email.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    signInWithGoogle,
+    signInWithApple,
+    updateUserProfile,
+    isAuthenticated: !!user,
+    requestSellerAccount,
+    approveSellerRequest,
+    rejectSellerRequest,
+    pendingSellerRequests,
+    verifySellerIdentity,
+    verifySellerEmail,
+    resendVerificationCode,
+    ownerEmail,
+    ownerPhone,
+    forgotPassword
+  };
+
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        loading, 
-        login, 
-        register, 
-        logout,
-        isAuthenticated: !!user,
-        requestSellerAccount,
-        approveSellerRequest,
-        rejectSellerRequest,
-        pendingSellerRequests,
-        verifySellerIdentity,
-        verifySellerEmail,
-        resendVerificationCode,
-        ownerEmail,
-        ownerPhone
-      }}
-    >
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

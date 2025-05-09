@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { products } from '@/data/products';
+import { useProducts } from '@/context/ProductContext';
 import { 
   Heart, 
   ShoppingCart, 
@@ -21,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/context/AuthContext';
 import { useAppSettings } from '@/context/AppSettingsContext';
+import RiyalSymbol from '@/components/ui/RiyalSymbol';
 
 // Mock reviews data
 const mockReviews = [
@@ -61,13 +61,15 @@ const generateExtraImages = (product: any) => {
 };
 
 const ProductDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { products } = useProducts();
   const { isAuthenticated } = useAuth();
-  const { currencySymbol } = useAppSettings();
+  const { language, translations, currencySymbol } = useAppSettings();
+  const t = translations[language];
   const [quantity, setQuantity] = useState(1);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
@@ -81,10 +83,9 @@ const ProductDetailPage = () => {
   
   if (!product) {
     return (
-      <div className="p-4 flex flex-col items-center justify-center h-[60vh]">
-        <h2 className="text-xl font-bold mb-2">Product not found</h2>
-        <p className="text-gray-500 mb-4">The product you're looking for doesn't exist or has been removed.</p>
-        <Button onClick={() => navigate('/')}>Back to Home</Button>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 className="text-2xl font-bold mb-4">Product not found</h1>
+        <Button onClick={() => navigate('/')}>Go back home</Button>
       </div>
     );
   }
@@ -230,25 +231,13 @@ const ProductDetailPage = () => {
           <div className="flex flex-col items-end">
             <div className="flex items-baseline gap-2">
               <span className="font-bold text-xl text-brand-blue">
-                {currencySymbol === 'ر.س' ? (
-                  <span className="flex items-center">
-                    <span>{product.price.toFixed(2)}</span>
-                    <img src="/images/sar-symbol.png" alt="SAR" className="h-5 ml-1" />
-                  </span>
-                ) : (
-                  <span>{currencySymbol}{product.price.toFixed(2)}</span>
-                )}
+                {currencySymbol}
+                {product.price.toFixed(2)}
               </span>
               {product.oldPrice && (
                 <span className="text-gray-400 line-through">
-                  {currencySymbol === 'ر.س' ? (
-                    <span className="flex items-center">
-                      <span>{product.oldPrice.toFixed(2)}</span>
-                      <img src="/images/sar-symbol.png" alt="SAR" className="h-4 ml-1" />
-                    </span>
-                  ) : (
-                    <span>{currencySymbol}{product.oldPrice.toFixed(2)}</span>
-                  )}
+                  {currencySymbol}
+                  {product.oldPrice.toFixed(2)}
                 </span>
               )}
             </div>

@@ -1,67 +1,68 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+  :root,
+  .arex-theme {
+    --background: linear-gradient(180deg, #F24B4B 0%, #B36AE2 100%); /* logo gradient */
+    --foreground: #1A237E; /* deep blue from AREX text */
+    --primary: #F24B4B; /* red from logo */
+    --primary-foreground: #fff;
+    --secondary: #B36AE2; /* purple from logo */
+    --secondary-foreground: #fff;
+    --accent: #B22234; /* bag deep red */
+    --accent-foreground: #fff;
+    --card: #fff;
+    --card-foreground: #1A237E;
+    --border: #B36AE2;
+    --muted: #F9A9B8; /* pink from logo lower background */
+    --muted-foreground: #B36AE2;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 199 95% 48%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 199 95% 48%;
 
     --radius: 1rem;
   }
 
-  .dark {
-    --background: 0 0% 0%;
-    --foreground: 210 40% 98%;
+  body {
+    background: linear-gradient(180deg, #F24B4B 0%, #B36AE2 100%);
+    color: #1A237E;
+    @apply arex-theme;
+  }
 
-    --card: 0 0% 0%;
-    --card-foreground: 210 40% 98%;
+  .dark {
+    --background: #1A1F2C;
+    --foreground: #F9FAFB;
+
+    --card: #191919;
+    --card-foreground: #F9FAFB;
 
     --popover: 0 0% 0%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 199 95% 48%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: #F24B4B;
+    --primary-foreground: #fff;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: #B36AE2;
+    --secondary-foreground: #fff;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: #2D2A3A;
+    --muted-foreground: #B36AE2;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: #B22234;
+    --accent-foreground: #fff;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
+    --border: #B36AE2;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
@@ -73,7 +74,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground arex-theme;
   }
   
   /* Fix RTL text direction for number inputs */
@@ -114,4 +115,23 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Custom scrollbar styles for AREX theme */
+::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #191929;
+  border-radius: 8px;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #191929 transparent;
 }

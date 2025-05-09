@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +8,8 @@ import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { useAppSettings } from '@/context/AppSettingsContext';
+import RiyalSymbol from '@/components/ui/RiyalSymbol';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +19,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { currencySymbol, language, convertPrice } = useAppSettings();
+  const { theme } = useTheme();
+  const [currentImage, setCurrentImage] = useState(0);
+  const images = product.images && product.images.length > 0 && product.images[0] ? product.images : [product.image];
   
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -34,6 +38,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
+  };
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+  const handleNext = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   // Format number based on language
@@ -76,14 +91,41 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
   
   return (
-    <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-md">
+    <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-md bg-transparent">
       <Link to={`/product/${product.id}`}>
         <div className="relative">
+          {/* Image Carousel */}
           <img 
-            src={product.image} 
+            src={images[currentImage]} 
             alt={product.name} 
-            className="w-full h-40 object-cover"
+            className="w-full h-40 object-cover bg-white"
           />
+          {images.length > 1 && (
+            <>
+              <button
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 shadow hover:bg-white z-10"
+                onClick={handlePrev}
+                aria-label="Previous image"
+              >
+                &#8592;
+              </button>
+              <button
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1 shadow hover:bg-white z-10"
+                onClick={handleNext}
+                aria-label="Next image"
+              >
+                &#8594;
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                {images.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`inline-block w-2 h-2 rounded-full ${idx === currentImage ? 'bg-brand-blue' : 'bg-gray-300'}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
           
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -115,17 +157,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </Button>
         </div>
         
-        <CardContent className="p-3">
+        <CardContent className="p-3 bg-transparent">
           <div className="flex flex-col gap-2">
             <h3 className="font-medium line-clamp-2 text-sm text-foreground">{product.name}</h3>
             
             <div className="flex items-baseline gap-2">
-              <span className="font-bold text-brand-blue">
-                {currencySymbol}{formatNumber(displayPrice)}
+              <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}> 
+                {formatNumber(displayPrice)}{currencySymbol === 'ر.س' ? ' SAR' : currencySymbol}
               </span>
               {displayOldPrice && (
-                <span className="text-gray-400 line-through text-xs">
-                  {currencySymbol}{formatNumber(displayOldPrice)}
+                <span className={`text-red-500 line-through text-xs ${theme === 'dark' ? 'text-red-400' : ''}`}> 
+                  {formatNumber(displayOldPrice)}{currencySymbol === 'ر.س' ? ' SAR' : currencySymbol}
                 </span>
               )}
             </div>

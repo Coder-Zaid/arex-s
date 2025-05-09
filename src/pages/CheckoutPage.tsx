@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +16,9 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import jsPDF from 'jspdf';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import RiyalSymbol from '@/components/ui/RiyalSymbol';
 
 const formSchema = z.object({
   fullName: z.string().min(2, {
@@ -42,7 +45,7 @@ const CheckoutPage = () => {
   
   // Default form values
   const defaultValues = {
-    fullName: user?.name || '',
+    fullName: user?.displayName || '',
     phone: user?.phone || '',
     address: user?.address || ''
   };
@@ -54,23 +57,66 @@ const CheckoutPage = () => {
   
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<any>(null);
+  const [redirect, setRedirect] = useState('');
   
-  if (items.length === 0) {
-    navigate('/cart');
-    return null;
+  useEffect(() => {
+    if (items.length === 0) {
+      setRedirect('/cart');
+    } else if (!isAuthenticated) {
+      setRedirect('/login?redirect=checkout');
+    }
+  }, [items.length, isAuthenticated]);
+  
+  useEffect(() => {
+    if (redirect) {
+      navigate(redirect);
+    }
+  }, [redirect, navigate]);
+  
+  if (redirect) {
+    return <div className="p-8 text-center">Redirecting...</div>;
   }
   
-  if (!isAuthenticated) {
-    navigate('/login?redirect=checkout');
-    return null;
-  }
-  
-  const handleSubmitOrder = (values: FormValues) => {
+  const handleSubmitOrder = async (values: FormValues) => {
     setIsSubmitting(true);
-    
     try {
       createOrder(items, values.address, paymentMethod);
-      navigate('/order-confirmation');
+      // Generate PDF invoice
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text('AREX Invoice', 14, 20);
+      doc.setFontSize(12);
+      doc.text(`Customer: ${values.fullName}`, 14, 35);
+      doc.text(`Phone: ${values.phone}`, 14, 42);
+      doc.text(`Address: ${values.address}`, 14, 49);
+      doc.text(`Date: ${new Date().toLocaleString()}`, 14, 56);
+      doc.text('----------------------------------------', 14, 62);
+      let y = 70;
+      items.forEach((item, idx) => {
+        doc.text(`${idx + 1}. ${item.product.name} x${item.quantity} - ${currency === 'SAR' ? <>SAR {formatNumber(convertPrice(item.product.price, 'SAR'))}</> : <>{currencySymbol}{formatNumber(convertPrice(item.product.price, 'SAR'))}</> }`, 14, y);
+        y += 7;
+      });
+      doc.text('----------------------------------------', 14, y);
+      y += 7;
+      doc.text(`Subtotal: ${currency === 'SAR' ? <>SAR {formatNumber(subtotal)}</> : <>{currencySymbol}{formatNumber(subtotal)}</> }`, 14, y);
+      y += 7;
+      doc.text(`Shipping: ${currency === 'SAR' ? <>SAR {formatNumber(shipping)}</> : <>{currencySymbol}{formatNumber(shipping)}</> }`, 14, y);
+      y += 7;
+      doc.text(`Tax: ${currency === 'SAR' ? <>SAR {formatNumber(tax)}</> : <>{currencySymbol}{formatNumber(tax)}</> }`, 14, y);
+      y += 7;
+      doc.text(`Total: ${currency === 'SAR' ? <>SAR {formatNumber(total)}</> : <>{currencySymbol}{formatNumber(total)}</> }`, 14, y);
+      // Convert PDF to base64
+      const pdfBase64 = doc.output('datauristring');
+      // Show confirmation modal
+      setPendingOrder({
+        email: user.email,
+        name: values.fullName,
+        orderDetails: `Order placed on ${new Date().toLocaleString()}\nTotal: ${currency === 'SAR' ? <>SAR {formatNumber(total)}</> : <>{currencySymbol}{formatNumber(total)}</> }\nItems: ${items.map(i => `${i.product.name} x${i.quantity}`).join(', ')}`,
+        pdfBase64,
+      });
+      setShowConfirmModal(true);
     } catch (error) {
       toast({
         title: language === 'ar' ? "فشل الطلب" : "Order failed",
@@ -78,9 +124,33 @@ const CheckoutPage = () => {
         variant: "destructive",
       });
       console.error(error);
-    } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  const handleConfirmSend = () => {
+    setShowConfirmModal(false);
+    setIsSubmitting(true);
+    if (!pendingOrder) return;
+    // Nice message and PDF download link
+    const message = `Thank you for your order!\n\nOrder Details:\n${pendingOrder.orderDetails}\n\nYou can download your invoice as a PDF here: [Download Invoice](${pendingOrder.pdfBase64})`;
+    // Show confirmation modal
+    setPendingOrder({
+      email: user.email,
+      name: pendingOrder.name,
+      orderDetails: message,
+      pdfBase64: pendingOrder.pdfBase64,
+    });
+    setShowConfirmModal(true);
+  };
+  
+  const handleCancelSend = () => {
+    setShowConfirmModal(false);
+    setPendingOrder(null);
+    toast({
+      title: language === 'ar' ? 'تم الإلغاء' : 'Cancelled',
+      description: language === 'ar' ? 'لم يتم إرسال تفاصيل الطلب.' : 'Order details were not sent.',
+    });
   };
   
   // Format number based on language
@@ -101,7 +171,7 @@ const CheckoutPage = () => {
   const total = subtotal + shipping + tax;
   
   return (
-    <div className="pb-36">
+    <div className="pb-36 min-h-screen w-full bg-transparent">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b shadow-sm p-3 flex items-center">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -111,6 +181,7 @@ const CheckoutPage = () => {
       </div>
       
       <div className="p-4">
+        <div className="max-w-xl mx-auto bg-transparent">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmitOrder)}>
             {/* Customer Information */}
@@ -120,46 +191,44 @@ const CheckoutPage = () => {
                 <h2 className="font-bold text-lg text-foreground">{language === 'ar' ? 'معلومات العميل' : 'Customer Information'}</h2>
               </div>
               
-              <Card>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <FormField
-                      control={form.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder={language === 'ar' ? 'أدخل اسمك الكامل' : 'Enter your full name'}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder={language === 'ar' ? 'أدخل رقم هاتفك' : 'Enter your phone number'}
-                              type="tel"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="p-4 mb-4">
+                <div className="space-y-3">
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder={language === 'ar' ? 'أدخل اسمك الكامل' : 'Enter your full name'}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder={language === 'ar' ? 'أدخل رقم هاتفك' : 'Enter your phone number'}
+                            type="tel"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </section>
             
             {/* Delivery Address */}
@@ -169,26 +238,24 @@ const CheckoutPage = () => {
                 <h2 className="font-bold text-lg text-foreground">{language === 'ar' ? 'عنوان التسليم' : 'Delivery Address'}</h2>
               </div>
               
-              <Card>
-                <CardContent className="p-4">
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{language === 'ar' ? 'العنوان الكامل' : 'Full Address'}</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder={language === 'ar' ? 'أدخل عنوانك الكامل' : 'Enter your full address'}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
+              <div className="p-4 mb-4">
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{language === 'ar' ? 'العنوان الكامل' : 'Full Address'}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder={language === 'ar' ? 'أدخل عنوانك الكامل' : 'Enter your full address'}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </section>
             
             {/* Payment Method */}
@@ -198,43 +265,41 @@ const CheckoutPage = () => {
                 <h2 className="font-bold text-lg text-foreground">{language === 'ar' ? 'طريقة الدفع' : 'Payment Method'}</h2>
               </div>
               
-              <Card>
-                <CardContent className="p-4">
-                  <RadioGroup 
-                    value={paymentMethod} 
-                    onValueChange={(value) => setPaymentMethod(value as 'cash' | 'card')}
-                  >
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse pb-2 border-b mb-2">
-                      <RadioGroupItem value="cash" id="cash" />
-                      <Label htmlFor="cash" className="flex-1 cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <DollarSign size={16} className="text-green-500" />
-                          <div>
-                            <div className="font-medium">{t.cashOnDelivery}</div>
-                            <div className="text-xs text-gray-500">
-                              {language === 'ar' ? 'الدفع عند استلام الطلب' : 'Pay when you receive the order'}
-                            </div>
+              <div className="p-4 mb-4">
+                <RadioGroup 
+                  value={paymentMethod} 
+                  onValueChange={(value) => setPaymentMethod(value as 'cash' | 'card')}
+                >
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse pb-2 border-b mb-2">
+                    <RadioGroupItem value="cash" id="cash" />
+                    <Label htmlFor="cash" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <DollarSign size={16} className="text-green-500" />
+                        <div>
+                          <div className="font-medium">{t.cashOnDelivery}</div>
+                          <div className="text-xs text-black">
+                            {language === 'ar' ? 'الدفع عند استلام الطلب' : 'Pay when you receive the order'}
                           </div>
                         </div>
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                      <RadioGroupItem value="card" id="card" />
-                      <Label htmlFor="card" className="flex-1 cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <CreditCard size={16} className="text-blue-500" />
-                          <div>
-                            <div className="font-medium">{t.cardPayment}</div>
-                            <div className="text-xs text-gray-500">
-                              {language === 'ar' ? 'ادفع الآن ببطاقتك' : 'Pay now with your card'}
-                            </div>
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="card" id="card" />
+                    <Label htmlFor="card" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <CreditCard size={16} className="text-blue-500" />
+                        <div>
+                          <div className="font-medium">{t.cardPayment}</div>
+                          <div className="text-xs text-black">
+                            {language === 'ar' ? 'ادفع الآن ببطاقتك' : 'Pay now with your card'}
                           </div>
                         </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </CardContent>
-              </Card>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
               
               {paymentMethod === 'card' && (
                 <div className="mt-3 bg-yellow-50 p-3 rounded-md flex items-start">
@@ -254,37 +319,35 @@ const CheckoutPage = () => {
                 {language === 'ar' ? 'ملخص الطلب' : 'Order Summary'}
               </h2>
               
-              <Card>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>
-                        {language === 'ar' 
-                          ? `المجموع الفرعي (${items.length.toString().replace(/\d/g, (d) => String.fromCharCode(1632 + parseInt(d)))} منتجات)` 
-                          : `Subtotal (${items.length} items)`}
-                      </span>
-                      <span>{currencySymbol}{formatNumber(subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>{language === 'ar' ? 'الشحن' : 'Shipping'}</span>
-                      <span>{currencySymbol}{formatNumber(shipping)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>{language === 'ar' ? 'الضريبة' : 'Tax'}</span>
-                      <span>{currencySymbol}{formatNumber(tax)}</span>
-                    </div>
-                    <Separator className="my-2" />
-                    <div className="flex justify-between font-bold">
-                      <span>{language === 'ar' ? 'المجموع' : 'Total'}</span>
-                      <span>{currencySymbol}{formatNumber(total)}</span>
-                    </div>
+              <div className="p-4 mb-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>
+                      {language === 'ar' 
+                        ? `المجموع الفرعي (${items.length.toString().replace(/\d/g, (d) => String.fromCharCode(1632 + parseInt(d)))} منتجات)` 
+                        : `Subtotal (${items.length} items)`}
+                    </span>
+                    <span>{currency === 'SAR' ? <>SAR {formatNumber(subtotal)}</> : <>{currencySymbol}{formatNumber(subtotal)}</> }</span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex justify-between text-sm">
+                    <span>{language === 'ar' ? 'الشحن' : 'Shipping'}</span>
+                    <span>{currency === 'SAR' ? <>SAR {formatNumber(shipping)}</> : <>{currencySymbol}{formatNumber(shipping)}</> }</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>{language === 'ar' ? 'الضريبة' : 'Tax'}</span>
+                    <span>{currency === 'SAR' ? <>SAR {formatNumber(tax)}</> : <>{currencySymbol}{formatNumber(tax)}</> }</span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between font-bold">
+                    <span className="font-bold text-foreground">{language === 'ar' ? 'المجموع' : 'Total'}</span>
+                    <span>{currency === 'SAR' ? <>SAR {formatNumber(total)}</> : <>{currencySymbol}{formatNumber(total)}</> }</span>
+                  </div>
+                </div>
+              </div>
             </section>
             
             {/* Place Order Button */}
-            <div className="fixed bottom-16 left-0 right-0 p-4 bg-background border-t max-w-[480px] mx-auto">
+            <div className="fixed bottom-16 left-0 right-0 p-4 bg-transparent border-t-0 max-w-[480px] mx-auto">
               <Button 
                 type="submit"
                 className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white"
@@ -297,7 +360,26 @@ const CheckoutPage = () => {
             </div>
           </form>
         </Form>
+        </div>
       </div>
+      
+      {/* Confirmation Modal */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="max-w-md mx-auto text-center">
+          <h2 className="text-xl font-bold mb-2">Confirm Your Email</h2>
+          <p className="mb-4">Please confirm your email address before sending your order details and invoice to the owner:</p>
+          <div className="mb-4 p-3 rounded bg-white/10 text-black">
+            <strong>Email:</strong> {pendingOrder?.email}<br/>
+            <strong>Name:</strong> {pendingOrder?.name}
+          </div>
+          <Button className="w-full mb-2" onClick={handleConfirmSend} disabled={isSubmitting}>
+            {isSubmitting ? 'Sending...' : 'Send Order Details'}
+          </Button>
+          <Button className="w-full" variant="outline" onClick={handleCancelSend} disabled={isSubmitting}>
+            Cancel
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -69,6 +68,9 @@ export default {
 					navy: "#1A1F2C",
 					orange: "#FF4C29",
 					light: "#F9FAFB",
+					arexRed: "#F24B4B",
+					arexPurple: "#B36AE2",
+					arexBlue: "#1A237E"
 				}
 			},
 			borderRadius: {
