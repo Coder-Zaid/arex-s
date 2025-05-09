@@ -10,6 +10,8 @@ import { Heart, ShoppingCart } from 'lucide-react';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import RiyalSymbol from '@/components/ui/RiyalSymbol';
 import { useTheme } from '@/context/ThemeContext';
+import Zoom from 'react-medium-image-zoom';
+import 'react-medium-image-zoom/dist/styles.css';
 
 interface ProductCardProps {
   product: Product;
@@ -100,12 +102,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={`/product/${product.id}`}>
         <div className="relative">
           {/* Image Carousel */}
-          <img 
-            src={images[currentImage] || placeholder} 
-            alt={product.name} 
-            className="w-full h-32 object-cover bg-white"
-            onError={handleImageError}
-          />
+          <div className="flex justify-center items-center w-full h-32 bg-white">
+            <Zoom>
+              <img 
+                src={images[currentImage] || placeholder} 
+                alt={product.name} 
+                className="object-contain"
+                style={{ width: '70%', height: '70%', maxWidth: '100%', maxHeight: '100%', margin: 'auto', display: 'block', cursor: 'zoom-in' }}
+                onError={handleImageError}
+              />
+            </Zoom>
+          </div>
           {images.length > 1 && (
             <>
               <button
