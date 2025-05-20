@@ -39,11 +39,15 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
       <div
         style={{
           fontWeight: 700,
-          fontSize: 24,
+          fontSize: 'clamp(1.2rem, 6vw, 2rem)',
           color: theme === 'dark' ? '#e0f2fe' : '#0a2240',
-          marginBottom: 8,
+          marginBottom: 16,
           letterSpacing: 0.5,
           textAlign: 'center',
+          padding: '0 1rem',
+          lineHeight: 1.3,
+          width: '100%',
+          maxWidth: 400
         }}
       >
         Experience Smart Shop, Arex.

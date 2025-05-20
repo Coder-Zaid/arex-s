@@ -18,7 +18,7 @@ export const TopNavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-20 w-full h-16 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] flex items-center justify-between px-4 shadow-md">
+    <nav className="sticky top-0 z-20 w-full h-16 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] flex items-center justify-between px-4 shadow-md">
       {/* Left: Logo and App Name */}
       <div className="flex items-center gap-3">
         <img src="/arex-bag.png" alt="AREX Logo" className="h-8 w-8" />
