@@ -23,9 +23,9 @@ const CartPage = () => {
   if (items.length === 0) {
     return (
       <div className="p-4 flex flex-col items-center justify-center h-[70vh]">
-        <ShoppingBag size={64} className="text-black mb-4" />
+        <ShoppingBag size={64} className="text-black dark:text-white mb-4" />
         <h2 className="text-xl font-bold mb-2">Your cart is empty</h2>
-        <p className="text-black text-center mb-4">
+        <p className="text-black dark:text-white text-center mb-4">
           Looks like you haven't added any products to your cart yet.
         </p>
         <div className="rounded-xl bg-transparent backdrop-blur-md shadow-lg p-1">
@@ -68,18 +68,18 @@ const CartPage = () => {
                     <h3 className="font-medium text-sm line-clamp-2">{item.product.name}</h3>
                     <button 
                       onClick={() => removeFromCart(item.product.id)}
-                      className="text-black hover:text-red-500"
+                      className="text-black dark:text-white hover:text-red-500"
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
                   
-                  <p className="text-sm text-black mt-1">{item.product.brand}</p>
+                  <p className="text-sm text-black dark:text-white mt-1">{item.product.brand}</p>
                   
                   <div className="flex justify-between items-center mt-2">
                     <div className="flex items-center border rounded-md">
                       <button 
-                        className="px-2 py-1 text-black"
+                        className="px-2 py-1 text-black dark:text-white"
                         onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                         disabled={item.quantity <= 1}
                       >
@@ -87,14 +87,14 @@ const CartPage = () => {
                       </button>
                       <span className="px-2">{item.quantity}</span>
                       <button 
-                        className="px-2 py-1 text-black"
+                        className="px-2 py-1 text-black dark:text-white"
                         onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                       >
                         +
                       </button>
                     </div>
                     
-                    <div className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                    <div className="font-bold text-black dark:text-white">
                       {(item.product.price * item.quantity).toFixed(2)}<RiyalSymbol color={theme === 'dark' ? '#fff' : '#000'} className="ml-1" />
                     </div>
                   </div>

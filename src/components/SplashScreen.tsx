@@ -40,7 +40,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
         style={{
           fontWeight: 700,
           fontSize: 'clamp(1.2rem, 6vw, 2rem)',
-          color: theme === 'dark' ? '#e0f2fe' : '#0a2240',
+          color: theme === 'dark' ? '#000' : '#0a2240',
           marginBottom: 16,
           letterSpacing: 0.5,
           textAlign: 'center',

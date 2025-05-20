@@ -439,7 +439,7 @@ const SellerPage = () => {
                     onChange={(e) => setStoreName(e.target.value)}
                     placeholder="Your store name"
                     required
-                    className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                    className="bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                   />
                 </div>
                 
@@ -454,7 +454,7 @@ const SellerPage = () => {
                     placeholder="Tell customers about your store"
                     rows={4}
                     required
-                    className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                    className="bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                   />
                 </div>
 
@@ -473,7 +473,7 @@ const SellerPage = () => {
                           setSellerPhone(val);
                         }}
                         placeholder="e.g. +966123456789"
-                        className="pl-8 bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                        className="pl-8 bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                         required
                       />
                     </div>
@@ -490,7 +490,7 @@ const SellerPage = () => {
                       onChange={(e) => setSellerEmail(e.target.value)}
                       placeholder="Your email for seller communications"
                       required
-                      className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                      className="bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                     />
                   </div>
                 </div>
@@ -509,7 +509,7 @@ const SellerPage = () => {
                         max="100"
                         value={sellerAge}
                         onChange={(e) => setSellerAge(parseInt(e.target.value))}
-                        className="pl-8 bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                        className="pl-8 bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                         required
                       />
                     </div>
@@ -681,7 +681,7 @@ const SellerPage = () => {
                   onChange={(e) => setStoreName(e.target.value)}
                   placeholder="Your store name"
                   required
-                  className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                  className="bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                 />
               </div>
               
@@ -696,7 +696,7 @@ const SellerPage = () => {
                   placeholder="Tell customers about your store"
                   rows={4}
                   required
-                  className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                  className="bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                 />
               </div>
 
@@ -715,7 +715,7 @@ const SellerPage = () => {
                         setSellerPhone(val);
                       }}
                       placeholder="e.g. +966123456789"
-                      className="pl-8 bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                      className="pl-8 bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                       required
                     />
                   </div>
@@ -732,7 +732,7 @@ const SellerPage = () => {
                     onChange={(e) => setSellerEmail(e.target.value)}
                     placeholder="Your email for seller communications"
                     required
-                    className="bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                    className="bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                   />
                 </div>
               </div>
@@ -751,7 +751,7 @@ const SellerPage = () => {
                       max="100"
                       value={sellerAge}
                       onChange={(e) => setSellerAge(parseInt(e.target.value))}
-                      className="pl-8 bg-white shadow rounded-lg text-black focus:ring-2 focus:ring-brand-blue focus:outline-none"
+                      className="pl-8 bg-white shadow rounded-lg text-black dark:text-white focus:ring-2 focus:ring-brand-blue focus:outline-none"
                       required
                     />
                   </div>

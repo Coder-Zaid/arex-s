@@ -277,7 +277,7 @@ const CheckoutPage = () => {
                         <DollarSign size={16} className="text-green-500" />
                         <div>
                           <div className="font-medium">{t.cashOnDelivery}</div>
-                          <div className="text-xs text-black">
+                          <div className="text-xs text-black dark:text-white">
                             {language === 'ar' ? 'الدفع عند استلام الطلب' : 'Pay when you receive the order'}
                           </div>
                         </div>
@@ -291,7 +291,7 @@ const CheckoutPage = () => {
                         <CreditCard size={16} className="text-blue-500" />
                         <div>
                           <div className="font-medium">{t.cardPayment}</div>
-                          <div className="text-xs text-black">
+                          <div className="text-xs text-black dark:text-white">
                             {language === 'ar' ? 'ادفع الآن ببطاقتك' : 'Pay now with your card'}
                           </div>
                         </div>
@@ -368,7 +368,7 @@ const CheckoutPage = () => {
         <DialogContent className="max-w-md mx-auto text-center">
           <h2 className="text-xl font-bold mb-2">Confirm Your Email</h2>
           <p className="mb-4">Please confirm your email address before sending your order details and invoice to the owner:</p>
-          <div className="mb-4 p-3 rounded bg-white/10 text-black">
+          <div className="mb-4 p-3 rounded bg-white/10 text-black dark:text-white">
             <strong>Email:</strong> {pendingOrder?.email}<br/>
             <strong>Name:</strong> {pendingOrder?.name}
           </div>

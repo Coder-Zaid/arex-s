@@ -174,7 +174,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <h3 className="font-medium line-clamp-2 text-sm text-foreground">{product.name}</h3>
             
             <div className="flex items-baseline gap-2">
-              <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}> 
+              <span className={`font-bold text-black dark:text-white`}> 
                 {formatNumber(displayPrice)}{currencySymbol === 'ر.س' ? ' SAR' : currencySymbol}
               </span>
               {displayOldPrice && (
