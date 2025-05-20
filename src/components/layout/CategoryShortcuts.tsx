@@ -17,7 +17,7 @@ export const CategoryShortcuts = () => {
           <Link
             key={cat}
             to={`/category/${cat.toLowerCase().replace(/\s+/g, '-')}`}
-            className="flex flex-col items-center justify-center w-16 h-16 rounded-full bg-white/80 shadow text-pink-600 hover:bg-pink-100 transition"
+            className="flex flex-col items-center justify-center w-16 h-16 rounded-full bg-white/80 shadow text-blue-600 hover:bg-blue-100 transition"
           >
             <Icon className="h-7 w-7 mb-1" />
             <span className="text-xs font-medium">{cat}</span>

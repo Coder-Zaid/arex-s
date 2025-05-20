@@ -178,7 +178,7 @@ const ProductDetailPage = () => {
         <img 
           src={productImages[currentImageIndex]} 
           alt={product.name} 
-          className="w-full h-64 object-cover transition-opacity duration-300"
+          className="w-full h-80 object-contain bg-white rounded transition-opacity duration-300"
         />
         
         {/* Image thumbnails */}
@@ -186,16 +186,16 @@ const ProductDetailPage = () => {
           {productImages.map((img, index) => (
             <div 
               key={index}
-              className={`w-10 h-10 rounded-md overflow-hidden border-2 ${
+              className={`w-16 h-16 rounded-md overflow-hidden border-2 ${
                 currentImageIndex === index ? 'border-brand-blue' : 'border-white/50'
-              } cursor-pointer transition-all duration-200 hover:scale-110`}
+              } cursor-pointer transition-all duration-200 hover:scale-110 bg-white`}
               onMouseEnter={() => handleImageHover(index)}
               onClick={() => setCurrentImageIndex(index)}
             >
               <img 
                 src={img} 
                 alt={`Product view ${index + 1}`} 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
           ))}

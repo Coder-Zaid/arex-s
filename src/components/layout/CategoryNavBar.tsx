@@ -16,7 +16,7 @@ export const CategoryNavBar = () => {
         <Link
           key={cat}
           to={`/category/${cat.toLowerCase().replace(/\s+/g, '-')}`}
-          className="mx-2 px-4 py-2 rounded-full font-medium text-sm text-gray-700 hover:bg-pink-100 hover:text-pink-600 transition"
+          className="mx-2 px-4 py-2 rounded-full font-medium text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-600 transition"
         >
           {cat}
         </Link>
