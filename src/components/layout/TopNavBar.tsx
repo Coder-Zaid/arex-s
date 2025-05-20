@@ -18,9 +18,9 @@ export const TopNavBar = () => {
   };
 
   return (
-    <header className="w-full bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] px-4 py-2 flex items-center justify-between shadow-md">
+    <nav className="sticky top-0 z-20 w-full bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] shadow flex items-center justify-between px-2 py-1 sm:px-4 sm:py-2">
       {/* Left: Hamburger, Logo and Location */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1 sm:gap-2">
         {showBack && (
           <button onClick={() => navigate(-1)} className="text-black dark:text-white hover:text-gray-700 dark:hover:text-white p-2 rounded transition">
             <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
@@ -121,6 +121,6 @@ export const TopNavBar = () => {
           <div className="flex-1" onClick={() => setDrawerOpen(false)} />
         </div>
       )}
-    </header>
+    </nav>
   );
 }; 
