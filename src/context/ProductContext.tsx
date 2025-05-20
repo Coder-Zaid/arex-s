@@ -55,7 +55,7 @@ const initialProducts: Product[] = [
     featured: false,
   },
   {
-    id: 'fan-42',
+    id: 'fan-35',
     name: '3D Fan 35cm',
     description: 'A compact 35cm 3D hologram fan for immersive advertising. Lightweight, portable, and easy to set up.',
     price: 126.0,

@@ -11,7 +11,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { OrderProvider } from "@/context/OrderContext";
 import { ProductProvider } from '@/context/ProductContext';
-import Layout from "@/components/Layout";
+import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
 import SplashScreen from './components/SplashScreen';
 
 // Pages
@@ -39,6 +39,7 @@ import ShippingAddressesPage from '@/pages/ShippingAddressesPage';
 import SettingsPage from '@/pages/SettingsPage';
 import AddProductsPage from '@/pages/AddProductsPage';
 import SellerProductsPage from '@/pages/SellerProductsPage';
+import JewelleryPage from '@/pages/JewelleryPage';
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -52,7 +53,11 @@ const App = () => {
   }, []);
 
   if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+    return (
+      <ThemeProvider>
+        <SplashScreen onFinish={() => setShowSplash(false)} />
+      </ThemeProvider>
+    );
   }
 
   return (
@@ -66,7 +71,7 @@ const App = () => {
                   <CartProvider>
                     <WishlistProvider>
                       <OrderProvider>
-                        <Layout>
+                        <ResponsiveLayout>
                           <Routes>
                             <Route path="/" element={<HomePage />} />
                             <Route path="/product/:id" element={<ProductDetailPage />} />
@@ -91,9 +96,10 @@ const App = () => {
                             <Route path="/about" element={<AboutPage />} />
                             <Route path="/addproducts" element={<AddProductsPage />} />
                             <Route path="/seller-products" element={<SellerProductsPage />} />
+                            <Route path="/jewellery" element={<JewelleryPage />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
-                        </Layout>
+                        </ResponsiveLayout>
                         <Toaster />
                         <Sonner />
                       </OrderProvider>

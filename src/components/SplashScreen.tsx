@@ -1,14 +1,18 @@
 import React, { useEffect } from 'react';
-
-const splashColors = {
-  background: 'linear-gradient(180deg, #F24B4B 0%, #B36AE2 100%)', // red to purple
-};
+import { useTheme } from '@/context/ThemeContext';
 
 export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
+  const { theme } = useTheme();
+
   useEffect(() => {
     const timer = setTimeout(onFinish, 2200);
     return () => clearTimeout(timer);
   }, [onFinish]);
+
+  const background =
+    theme === 'dark'
+      ? 'linear-gradient(180deg, #0a2240 0%, #1e3a5c 100%)' // dark blue
+      : 'linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%)'; // lightest blue
 
   return (
     <div
@@ -18,7 +22,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: splashColors.background,
+        background,
         transition: 'background 0.5s',
       }}
     >
@@ -32,6 +36,18 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
           animation: 'bounceIn 1.2s cubic-bezier(.68,-0.55,.27,1.55)',
         }}
       />
+      <div
+        style={{
+          fontWeight: 700,
+          fontSize: 24,
+          color: theme === 'dark' ? '#e0f2fe' : '#0a2240',
+          marginBottom: 8,
+          letterSpacing: 0.5,
+          textAlign: 'center',
+        }}
+      >
+        Experience Smart Shop, Arex.
+      </div>
       <style>{`
         @keyframes bounceIn {
           0% { transform: scale(0.7); opacity: 0; }

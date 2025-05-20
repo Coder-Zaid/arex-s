@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 
 const PersonalInfoPage = () => {
   const navigate = useNavigate();
@@ -14,14 +15,9 @@ const PersonalInfoPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-brand-blue via-purple-700 to-red-500 pb-24 px-4 text-white">
-      <div className="flex items-center gap-2 pt-6 mb-6">
-        <Button variant="ghost" size="icon" className="text-white" onClick={() => navigate('/profile')}>
-          <ChevronLeft />
-        </Button>
-        <h1 className="text-2xl font-bold ml-2">Personal Information</h1>
-      </div>
-      <div className="max-w-md mx-auto space-y-8">
+    <ResponsiveLayout>
+      <div className="max-w-md mx-auto space-y-8 pt-12">
+        <h1 className="text-2xl font-bold mb-6 text-white">Personal Information</h1>
         <Card className="bg-white/10 shadow-lg border-0 text-white">
           <CardContent className="p-6 space-y-4">
             <div>
@@ -63,7 +59,7 @@ const PersonalInfoPage = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ResponsiveLayout>
   );
 };
 

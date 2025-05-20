@@ -10,6 +10,8 @@ import { Heart, ShoppingCart } from 'lucide-react';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import RiyalSymbol from '@/components/ui/RiyalSymbol';
 import { useTheme } from '@/context/ThemeContext';
+import Zoom from 'react-medium-image-zoom';
+import 'react-medium-image-zoom/dist/styles.css';
 
 interface ProductCardProps {
   product: Product;
@@ -22,6 +24,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { theme } = useTheme();
   const [currentImage, setCurrentImage] = useState(0);
   const images = product.images && product.images.length > 0 && product.images[0] ? product.images : [product.image];
+  const placeholder = '/placeholder.svg';
   
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -49,6 +52,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = placeholder;
   };
 
   // Format number based on language
@@ -95,11 +102,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={`/product/${product.id}`}>
         <div className="relative">
           {/* Image Carousel */}
-          <img 
-            src={images[currentImage]} 
-            alt={product.name} 
-            className="w-full h-40 object-cover bg-white"
-          />
+          <div className="flex justify-center items-center w-full h-32 bg-white">
+            <Zoom>
+              <img 
+                src={images[currentImage] || placeholder} 
+                alt={product.name} 
+                className="object-contain"
+                style={{ width: '70%', height: '70%', maxWidth: '100%', maxHeight: '100%', margin: 'auto', display: 'block', cursor: 'zoom-in' }}
+                onError={handleImageError}
+              />
+            </Zoom>
+          </div>
           {images.length > 1 && (
             <>
               <button
