@@ -107,7 +107,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <img 
                 src={images[currentImage] || placeholder} 
                 alt={product.name} 
-                className="object-contain w-full h-full"
+                className="object-contain w-1/2 h-1/2 mx-auto"
                 onError={handleImageError}
               />
             </Zoom>
