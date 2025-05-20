@@ -178,7 +178,7 @@ const ProductDetailPage = () => {
         <img 
           src={productImages[currentImageIndex]} 
           alt={product.name} 
-          className="w-1/2 h-1/2 object-contain bg-white rounded mx-auto transition-opacity duration-300"
+          className="w-1/3 h-1/3 object-contain bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] rounded mx-auto transition-opacity duration-300"
         />
         
         {/* Image thumbnails */}

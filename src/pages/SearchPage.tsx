@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ProductCard from '@/components/ProductCard';
@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const SearchPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { language } = useAppSettings();
@@ -38,6 +39,16 @@ const SearchPage = () => {
     const matchesRating = selectedRating === null || Math.floor(product.rating) === selectedRating;
     return matchesQuery && matchesCategory && matchesPrice && matchesBrand && matchesRating;
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryFromUrl = params.get('category');
+    if (categoryFromUrl) {
+      // Find the display name for the slug
+      const match = categories.find(cat => cat.toLowerCase().replace(/\s+/g, '-') === categoryFromUrl);
+      if (match) setActiveCategory(match);
+    }
+  }, [location.search, categories]);
 
   // Format number based on language
   const formatNumber = (num: number) => {

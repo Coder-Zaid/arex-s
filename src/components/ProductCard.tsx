@@ -102,12 +102,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <Link to={`/product/${product.id}`}>
         <div className="relative">
           {/* Image Carousel */}
-          <div className="flex justify-center items-center w-full h-40 bg-white">
+          <div className="flex justify-center items-center w-full h-40 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472]">
             <Zoom>
               <img 
                 src={images[currentImage] || placeholder} 
                 alt={product.name} 
-                className="object-contain w-1/2 h-1/2 mx-auto"
+                className="object-contain w-1/3 h-1/3 mx-auto"
                 onError={handleImageError}
               />
             </Zoom>
