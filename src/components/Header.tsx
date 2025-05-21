@@ -46,10 +46,16 @@ const Header = () => {
               <img 
                 src="/arex-bag.png" 
                 alt="Arex Logo" 
-                className="h-10 w-10 mr-2" 
+                className="h-20 w-20 mr-4" 
               />
-              <span className="font-bold text-xl text-brand-arexBlue hidden sm:inline-block" style={{color: theme === 'dark' ? '#ffffff' : '#000000'}}>Arex</span>
-              <span className="font-bold text-xl text-brand-arexBlue inline-block sm:hidden" style={{color: theme === 'dark' ? '#ffffff' : '#000000'}}>Arex</span>
+              <span
+                className={`font-bold text-3xl px-4 py-1 rounded hidden sm:inline-block ${theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'}`}
+                style={{letterSpacing: 2}}
+              >AREX</span>
+              <span
+                className={`font-bold text-3xl px-4 py-1 rounded inline-block sm:hidden ${theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'}`}
+                style={{letterSpacing: 2}}
+              >AREX</span>
             </Link>
           </motion.div>
           

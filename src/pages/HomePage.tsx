@@ -10,6 +10,7 @@ import { ArrowRight } from 'lucide-react';
 import { useAppSettings } from '@/context/AppSettingsContext';
 import { useProducts } from '@/context/ProductContext';
 import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
+import { getUniqueCategories } from '@/components/layout/CategoryNavBar';
 
 const HomePage = () => {
   const { products } = useProducts();
@@ -20,6 +21,10 @@ const HomePage = () => {
   const { currencySymbol, language, translations, isRtl } = useAppSettings();
   const t = translations[language];
   
+  // Get unique categories and add 'Jewellery' if not present
+  let categories: string[] = getUniqueCategories(products) as string[];
+  if (!categories.includes('Jewellery')) categories.push('Jewellery');
+
   return (
     <ResponsiveLayout>
       <TopNavBar />
@@ -75,21 +80,17 @@ const HomePage = () => {
       <section className="my-6 px-4">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg text-foreground">{t.browseCategories}</h2>
+          <Link to="/categories">
+            <button className="bg-brand-blue text-white px-4 py-2 rounded-full font-medium text-sm hover:bg-blue-700 transition">
+              Categories
+            </button>
+          </Link>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          {['TV', 'Audio', 'Computers', 'Wearables', 'Smart Home', 'Appliances'].map((category) => (
-            <Link key={category} to={`/category/${category.toLowerCase()}`}>
+          {categories.map((category) => (
+            <Link key={category} to={category === 'Jewellery' ? '/jewellery' : `/search?category=${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}>
               <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <span className="font-medium text-black dark:text-white">
-                  {language === 'ar' ? {
-                    'TV': 'تلفزيون',
-                    'Audio': 'صوتيات',
-                    'Computers': 'حواسيب',
-                    'Wearables': 'أجهزة قابلة للارتداء',
-                    'Smart Home': 'المنزل الذكي',
-                    'Appliances': 'أجهزة منزلية'
-                  }[category] : category}
-                </span>
+                <span className="font-medium text-black dark:text-white">{category}</span>
               </div>
             </Link>
           ))}

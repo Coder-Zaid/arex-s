@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,8 +37,13 @@ const ProfilePage = () => {
   const [editName, setEditName] = React.useState(user?.displayName || '');
   const [editPhone, setEditPhone] = React.useState(user?.phone || '');
   
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+  
   if (!isAuthenticated) {
-    navigate('/login');
     return null;
   }
   

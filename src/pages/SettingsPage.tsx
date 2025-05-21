@@ -8,7 +8,7 @@ const SettingsPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-brand-blue via-purple-700 to-red-500 pb-24 px-4 text-white">
+    <div className="min-h-screen w-full bg-brand-blue pb-24 px-4 text-white">
       <div className="flex items-center gap-2 pt-6 mb-6">
         <Button variant="ghost" size="icon" className="text-white" onClick={() => navigate('/profile')}>
           <ChevronLeft />
