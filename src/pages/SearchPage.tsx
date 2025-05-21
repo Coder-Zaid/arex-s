@@ -154,7 +154,10 @@ const SearchPage = () => {
                 ? 'bg-brand-blue text-white' 
                 : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
             }`}
-            onClick={() => setActiveCategory(null)}
+            onClick={() => {
+              setActiveCategory(null);
+              navigate('/search');
+            }}
           >
             {language === 'ar' ? 'الكل' : 'All'}
           </button>
@@ -166,7 +169,10 @@ const SearchPage = () => {
                   ? 'bg-brand-blue text-white' 
                   : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
               }`}
-              onClick={() => setActiveCategory(category)}
+              onClick={() => {
+                setActiveCategory(category);
+                navigate(`/search?category=${category.toLowerCase().replace(/\s+/g, '-')}`);
+              }}
             >
               {language === 'ar' ? {
                 'TV': 'تلفزيون',

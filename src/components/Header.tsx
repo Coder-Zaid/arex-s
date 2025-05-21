@@ -1,19 +1,24 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { User, ShoppingCart, Heart, Search } from 'lucide-react';
+import { User, ShoppingCart, Heart, Search, ChevronLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import ThemeToggle from './ThemeToggle';
 import SettingsMenu from './SettingsMenu';
+import { useTheme } from '@/context/ThemeContext';
 
 const Header = () => {
   const { isAuthenticated, user } = useAuth();
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
+  const { theme } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const showBack = location.pathname !== '/';
   
   return (
     <motion.header 
@@ -24,10 +29,18 @@ const Header = () => {
     >
       <div className="container px-4 py-3 mx-auto">
         <div className="flex justify-between items-center">
+          {/* Back Button */}
+          {showBack && (
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="mr-2">
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          )}
+          
           {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            className={showBack ? 'flex-1' : ''}
           >
             <Link to="/" className="flex items-center">
               <img 
@@ -35,8 +48,8 @@ const Header = () => {
                 alt="Arex Logo" 
                 className="h-10 w-10 mr-2" 
               />
-              <span className="font-bold text-xl text-brand-arexBlue hidden sm:inline-block" style={{color: '#1A237E'}}>Arex</span>
-              <span className="font-bold text-xl text-brand-arexBlue inline-block sm:hidden" style={{color: '#1A237E'}}>Arex</span>
+              <span className="font-bold text-xl text-brand-arexBlue hidden sm:inline-block" style={{color: theme === 'dark' ? '#ffffff' : '#000000'}}>Arex</span>
+              <span className="font-bold text-xl text-brand-arexBlue inline-block sm:hidden" style={{color: theme === 'dark' ? '#ffffff' : '#000000'}}>Arex</span>
             </Link>
           </motion.div>
           
