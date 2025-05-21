@@ -7,6 +7,7 @@ import {
   signOut,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail
@@ -19,7 +20,7 @@ interface AuthContextType {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (method?: 'redirect') => Promise<void>;
   signInWithApple: () => Promise<void>;
   updateUserProfile: (data: Partial<CustomUserData>) => Promise<void>;
   isAuthenticated: boolean;
@@ -534,19 +535,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (method?: 'redirect') => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user: User = {
-        ...result.user,
-        id: result.user.uid,
-        address: '',
-        phone: '',
-        isSeller: false,
-        sellerVerified: false,
-        sellerApproved: false
-      };
-      setUser(user);
+      let result;
+      if (method === 'redirect') {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      } else {
+        result = await signInWithPopup(auth, googleProvider);
+      }
+      if (result) {
+        const user: User = {
+          ...result.user,
+          id: result.user.uid,
+          address: '',
+          phone: '',
+          isSeller: false,
+          sellerVerified: false,
+          sellerApproved: false
+        };
+        setUser(user);
+      }
     } catch (error) {
       console.error('Google sign-in error:', error);
       throw error;

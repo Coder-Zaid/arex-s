@@ -46,14 +46,14 @@ const Header = () => {
               <img 
                 src="/arex-bag.png" 
                 alt="Arex Logo" 
-                className="h-20 w-20 mr-4" 
+                className="h-28 w-28 mr-6" 
               />
               <span
-                className={`font-bold text-3xl px-4 py-1 rounded hidden sm:inline-block ${theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'}`}
+                className={`font-bold text-3xl px-4 py-1 rounded hidden sm:inline-block ${theme === 'dark' ? 'text-white' : 'text-black'} bg-transparent`}
                 style={{letterSpacing: 2}}
               >AREX</span>
               <span
-                className={`font-bold text-3xl px-4 py-1 rounded inline-block sm:hidden ${theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'}`}
+                className={`font-bold text-3xl px-4 py-1 rounded inline-block sm:hidden ${theme === 'dark' ? 'text-white' : 'text-black'} bg-transparent`}
                 style={{letterSpacing: 2}}
               >AREX</span>
             </Link>
@@ -125,6 +125,14 @@ const Header = () => {
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Link to={isAuthenticated ? "/profile" : "/login"}>
                 <User size={20} />
+              </Link>
+            </motion.div>
+            
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Link to="/jewellery">
+                <span className="flex items-center gap-1 px-3 py-2 rounded-full bg-yellow-300 text-black font-semibold text-sm hover:bg-yellow-400 transition">
+                  <span role="img" aria-label="jewel">💍</span> Jewellery
+                </span>
               </Link>
             </motion.div>
           </motion.div>
