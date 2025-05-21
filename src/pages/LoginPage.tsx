@@ -44,8 +44,8 @@ const LoginPage = () => {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithGoogle('redirect');
-      // navigation will happen after redirect
+      await signInWithGoogle();
+      navigate('/');
     } catch (err) {
       console.error(err);
     }

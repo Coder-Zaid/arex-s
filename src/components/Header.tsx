@@ -46,14 +46,14 @@ const Header = () => {
               <img 
                 src="/arex-bag.png" 
                 alt="Arex Logo" 
-                className="h-28 w-28 mr-6" 
+                className="h-36 w-36 mr-8" 
               />
               <span
-                className={`font-bold text-3xl px-4 py-1 rounded hidden sm:inline-block ${theme === 'dark' ? 'text-white' : 'text-black'} bg-transparent`}
+                className="font-bold text-3xl px-4 py-1 rounded hidden sm:inline-block text-black bg-transparent"
                 style={{letterSpacing: 2}}
               >AREX</span>
               <span
-                className={`font-bold text-3xl px-4 py-1 rounded inline-block sm:hidden ${theme === 'dark' ? 'text-white' : 'text-black'} bg-transparent`}
+                className="font-bold text-3xl px-4 py-1 rounded inline-block sm:hidden text-black bg-transparent"
                 style={{letterSpacing: 2}}
               >AREX</span>
             </Link>
