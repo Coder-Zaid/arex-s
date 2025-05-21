@@ -21,8 +21,8 @@ export const TopNavBar = () => {
     <nav className="sticky top-0 z-20 w-full h-16 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] flex items-center justify-between px-4 shadow-md">
       {/* Left: Logo and App Name */}
       <div className="flex items-center gap-3">
-        <img src="/arex-bag.png" alt="AREX Logo" className="h-8 w-8" />
-        <span className="text-2xl font-bold text-white">AREX</span>
+        <img src="/arex-bag.png" alt="AREX Logo" className="h-20 w-20" />
+        <span className="text-3xl font-bold text-black">AREX</span>
       </div>
       {/* Right: Action Icons */}
       <div className="flex items-center gap-5">
@@ -45,8 +45,8 @@ export const TopNavBar = () => {
           <div className="w-72 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] h-full shadow-lg p-6 flex flex-col">
             <button onClick={() => setDrawerOpen(false)} className="mb-6 text-black dark:text-white hover:text-gray-700 dark:hover:text-white self-end text-2xl">✕</button>
             <div className="flex items-center mb-6">
-              <img src="/arex-bag.png" alt="AREX Logo" className="h-8 w-8 mr-2" />
-              <span className="text-2xl font-bold text-black dark:text-white">AREX</span>
+              <img src="/arex-bag.png" alt="AREX Logo" className="h-20 w-20 mr-4" />
+              <span className="text-3xl font-bold text-black">AREX</span>
             </div>
             <div className="mb-4">
               <div className="relative">

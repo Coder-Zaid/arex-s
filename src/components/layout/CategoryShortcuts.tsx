@@ -28,7 +28,7 @@ export const CategoryShortcuts = () => {
       <Link
         key="Jewellery"
         to="/jewellery"
-        className="flex flex-col items-center justify-center w-16 h-16 rounded-full bg-white border-2 border-yellow-400 shadow text-yellow-700 hover:bg-yellow-50 transition"
+        className="flex flex-col items-center justify-center w-16 h-16 rounded-full bg-white/80 shadow text-blue-600 hover:bg-blue-100 transition"
       >
         <span className="text-2xl mb-1" role="img" aria-label="jewel">💍</span>
         <span className="text-xs font-medium">Jewellery</span>
