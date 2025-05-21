@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import ThemeToggle from './ThemeToggle';
 import SettingsMenu from './SettingsMenu';
 import { useTheme } from '@/context/ThemeContext';
+import "@fontsource/montserrat/900.css";
 
 const Header = () => {
   const { isAuthenticated, user } = useAuth();
@@ -49,12 +50,12 @@ const Header = () => {
                 className="h-36 w-36 mr-8" 
               />
               <span
-                className="font-bold text-3xl px-4 py-1 rounded hidden sm:inline-block text-black bg-transparent"
-                style={{letterSpacing: 2}}
+                className="font-bold text-3xl px-4 py-1 rounded hidden sm:inline-block text-black bg-transparent font-montserrat"
+                style={{letterSpacing: 2, fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}
               >AREX</span>
               <span
-                className="font-bold text-3xl px-4 py-1 rounded inline-block sm:hidden text-black bg-transparent"
-                style={{letterSpacing: 2}}
+                className="font-bold text-3xl px-4 py-1 rounded inline-block sm:hidden text-black bg-transparent font-montserrat"
+                style={{letterSpacing: 2, fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}
               >AREX</span>
             </Link>
           </motion.div>

@@ -3,6 +3,7 @@ import { useTheme } from '@/context/ThemeContext';
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import "@fontsource/montserrat/900.css";
 
 export const TopNavBar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -22,7 +23,7 @@ export const TopNavBar = () => {
       {/* Left: Logo and App Name */}
       <div className="flex items-center gap-3">
         <img src="/arex-bag.png" alt="AREX Logo" className="h-20 w-20" />
-        <span className="text-3xl font-bold text-black">AREX</span>
+        <span className="text-3xl font-bold text-black font-montserrat" style={{fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}>AREX</span>
       </div>
       {/* Right: Action Icons */}
       <div className="flex items-center gap-5">
@@ -46,7 +47,7 @@ export const TopNavBar = () => {
             <button onClick={() => setDrawerOpen(false)} className="mb-6 text-black dark:text-white hover:text-gray-700 dark:hover:text-white self-end text-2xl">✕</button>
             <div className="flex items-center mb-6">
               <img src="/arex-bag.png" alt="AREX Logo" className="h-20 w-20 mr-4" />
-              <span className="text-3xl font-bold text-black">AREX</span>
+              <span className="text-3xl font-bold text-black font-montserrat" style={{fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}>AREX</span>
             </div>
             <div className="mb-4">
               <div className="relative">

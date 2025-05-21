@@ -31,7 +31,7 @@ export const CategoryShortcuts = () => {
         className="flex flex-col items-center justify-center w-16 h-16 rounded-full bg-white/80 shadow text-blue-600 hover:bg-blue-100 transition"
       >
         <span className="text-2xl mb-1" role="img" aria-label="jewel">💍</span>
-        <span className="text-xs font-medium">Jewellery</span>
+        <span className="text-[10px] font-medium leading-tight text-center break-words">Jewellery</span>
       </Link>
     </div>
   );
