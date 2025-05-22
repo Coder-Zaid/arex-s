@@ -34,7 +34,7 @@ const HomePage = () => {
         <BannerSlider banners={banners} />
       </section>
       {/* Featured Products */}
-      <section className="my-6 px-4">
+      <section className="my-6 px-2 sm:px-4">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg text-foreground">{t.featuredProducts}</h2>
           <Link to="/category/featured" className="text-brand-blue text-sm flex items-center">
@@ -48,7 +48,7 @@ const HomePage = () => {
         </div>
       </section>
       {/* New Arrivals */}
-      <section className="my-6 px-4">
+      <section className="my-6 px-2 sm:px-4">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg text-foreground">{t.newArrivals}</h2>
           <Link to="/category/new" className="text-brand-blue text-sm flex items-center">
@@ -62,7 +62,7 @@ const HomePage = () => {
         </div>
       </section>
       {/* Flash Deals */}
-      <section className="my-6 px-4">
+      <section className="my-6 px-2 sm:px-4">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg text-foreground">{t.flashDeals}</h2>
           <Link to="/category/sale" className="text-brand-blue text-sm flex items-center">
@@ -76,7 +76,7 @@ const HomePage = () => {
         </div>
       </section>
       {/* Categories */}
-      <section className="my-6 px-4">
+      <section className="my-8 px-2 sm:px-4 pb-8">
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg text-foreground">{t.browseCategories}</h2>
           <Link to="/categories">

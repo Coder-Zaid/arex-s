@@ -268,25 +268,26 @@ const ProductDetailPage = () => {
             
             <TabsContent value="reviews" className="animate-fade-in">
               <div className="mb-4">
-                {!showReviewForm ? (
-                  <Button 
-                    onClick={() => {
-                      if (isAuthenticated) {
-                        setShowReviewForm(true);
-                      } else {
-                        toast({
-                          title: "Sign in required",
-                          description: "Please sign in to write a review",
-                        });
-                        navigate('/login');
-                      }
-                    }} 
-                    size="sm"
-                    className="w-full mb-4 hover:scale-[1.02] transition-all duration-200"
-                  >
-                    Write a Review
-                  </Button>
-                ) : (
+                <hr className="my-4 border-gray-200" />
+                <Button 
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      setShowReviewForm(true);
+                    } else {
+                      toast({
+                        title: "Sign in required",
+                        description: "Please sign in to write a review",
+                      });
+                      navigate('/login');
+                    }
+                  }} 
+                  size="sm"
+                  className="w-full mb-6 mt-2 border-2 border-brand-blue bg-white text-brand-blue font-bold shadow-md rounded-lg hover:bg-brand-blue hover:text-white transition-all duration-200"
+                >
+                  Write a Review
+                </Button>
+                
+                {showReviewForm && (
                   <div className="bg-gray-50 p-3 rounded-lg mb-4 animate-scale-in">
                     <h3 className="font-medium text-sm mb-2">Your Review</h3>
                     <div className="flex items-center mb-2">

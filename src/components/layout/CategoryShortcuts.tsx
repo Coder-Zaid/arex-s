@@ -11,7 +11,7 @@ export const CategoryShortcuts = () => {
   const hasJewellery = categories.includes('Jewellery');
 
   return (
-    <div className="flex gap-4 px-4 py-3 overflow-x-auto bg-transparent justify-end">
+    <div className="flex gap-4 px-4 py-3 overflow-x-auto bg-transparent justify-end no-scrollbar md:scrollbar-thin md:scrollbar-thumb-blue-400 md:scrollbar-track-blue-100" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 12 }}>
       {categories.map((cat, i) => {
         const Icon = icons[i] || Tag;
         return (
