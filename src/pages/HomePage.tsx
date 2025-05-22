@@ -1,6 +1,5 @@
 import React from 'react';
 import { TopNavBar } from '@/components/layout/TopNavBar';
-import { CategoryNavBar } from '@/components/layout/CategoryNavBar';
 import { CategoryShortcuts } from '@/components/layout/CategoryShortcuts';
 import BannerSlider from '@/components/BannerSlider';
 import ProductCard from '@/components/ProductCard';
@@ -28,7 +27,7 @@ const HomePage = () => {
   return (
     <ResponsiveLayout>
       <TopNavBar />
-      <CategoryNavBar />
+      {/* <CategoryNavBar /> */}
       <CategoryShortcuts />
       {/* Banner Slider */}
       <section className="my-4 px-4">
