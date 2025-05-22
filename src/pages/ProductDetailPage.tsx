@@ -282,7 +282,7 @@ const ProductDetailPage = () => {
                     }
                   }} 
                   size="sm"
-                  className="w-full mb-6 mt-2 border-2 border-brand-blue bg-white text-brand-blue font-bold shadow-md rounded-lg hover:bg-brand-blue hover:text-white transition-all duration-200"
+                  className="w-full mb-6 mt-4 border-2 border-brand-blue bg-white text-brand-blue font-bold shadow-md rounded-lg hover:bg-brand-blue hover:text-white transition-all duration-200"
                 >
                   Write a Review
                 </Button>

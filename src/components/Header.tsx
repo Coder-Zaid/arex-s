@@ -43,7 +43,7 @@ const Header = () => {
             whileTap={{ scale: 0.95 }}
             className={showBack ? 'flex-1' : ''}
           >
-            <div className="header-logo-card gap-1">
+            <div className="header-logo-card gap-5">
               <img 
                 src="/arex-logo-1.png" 
                 alt="Arex Logo" 
@@ -52,7 +52,7 @@ const Header = () => {
               <img 
                 src="/arex-name - Copy.png" 
                 alt="Arex Name" 
-                className="h-9 w-auto" 
+                className="h-8 w-8" 
               />
             </div>
           </motion.div>
