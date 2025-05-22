@@ -22,8 +22,13 @@ export const TopNavBar = () => {
     <nav className="sticky top-0 z-20 w-full h-16 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#181c2f] dark:via-[#232946] dark:to-[#3a3f5a] flex items-center justify-between px-4 shadow-md">
       {/* Left: Logo and App Name */}
       <div className="flex items-center gap-0">
-        <img src="/arex-logo-1.png" alt="AREX Logo" className="h-40 w-40 -mt-2" />
-        <span className="text-2xl font-bold text-[#0077cc] dark:text-[#00aaff] font-montserrat">AREX</span>
+        <img src="/arex-logo-1.png" alt="AREX Logo" className="h-20 w-20 -mt-2" />
+        <span
+          className="text-4xl font-bold font-montserrat text-blue-700 dark:text-blue-700"
+          style={{ fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 800 }}
+        >
+          AREX
+        </span>
       </div>
       {/* Right: Action Icons */}
       <div className="flex items-center gap-5">
