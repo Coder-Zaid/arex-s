@@ -11,7 +11,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
   const background =
     theme === 'dark'
-      ? 'linear-gradient(180deg, #0a2240 0%, #1e3a5c 100%)' // dark blue
+      ? 'linear-gradient(120deg, #181c2f 60%, #3a3f5a 100%)' // midnight palette
       : 'linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%)'; // lightest blue
 
   return (
@@ -27,11 +27,11 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
       }}
     >
       <img
-        src={'/arex-bag.png'}
-        alt="AREX Bag Logo"
+        src={'/arex-logo-1.png'}
+        alt="AREX Logo"
         style={{
-          width: 120,
-          height: 120,
+          width: 160,
+          height: 160,
           marginBottom: 24,
           animation: 'bounceIn 1.2s cubic-bezier(.68,-0.55,.27,1.55)',
         }}

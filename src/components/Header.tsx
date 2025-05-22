@@ -43,21 +43,18 @@ const Header = () => {
             whileTap={{ scale: 0.95 }}
             className={showBack ? 'flex-1' : ''}
           >
-            <Link to="/" className="flex items-center">
+            <div className="header-logo-card gap-1">
               <img 
-                src="/arex-bag.png" 
+                src="/arex-logo-1.png" 
                 alt="Arex Logo" 
-                className="h-36 w-36 mr-8" 
+                className="h-5 w-5" 
               />
-              <span
-                className="font-bold text-3xl px-4 py-1 rounded hidden sm:inline-block text-black bg-transparent font-montserrat"
-                style={{letterSpacing: 2, fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}
-              >AREX</span>
-              <span
-                className="font-bold text-3xl px-4 py-1 rounded inline-block sm:hidden text-black bg-transparent font-montserrat"
-                style={{letterSpacing: 2, fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}
-              >AREX</span>
-            </Link>
+              <img 
+                src="/arex-name - Copy.png" 
+                alt="Arex Name" 
+                className="h-9 w-auto" 
+              />
+            </div>
           </motion.div>
           
           {/* Search Bar (Mobile Hidden) */}

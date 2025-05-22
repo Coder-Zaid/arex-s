@@ -81,7 +81,7 @@ const HomePage = () => {
         <div className="flex justify-between items-center mb-3">
           <h2 className="font-bold text-lg text-foreground">{t.browseCategories}</h2>
           <Link to="/categories">
-            <button className="bg-brand-blue text-white px-4 py-2 rounded-full font-medium text-sm hover:bg-blue-700 transition">
+            <button className="bg-brand-blue text-foreground px-4 py-2 rounded-full font-medium text-sm hover:bg-blue-700 transition">
               Categories
             </button>
           </Link>
@@ -90,7 +90,7 @@ const HomePage = () => {
           {categories.map((category) => (
             <Link key={category} to={category === 'Jewellery' ? '/jewellery' : `/search?category=${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}>
               <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <span className="font-medium text-black dark:text-white">{category}</span>
+                <span className="font-medium text-foreground">{category}</span>
               </div>
             </Link>
           ))}

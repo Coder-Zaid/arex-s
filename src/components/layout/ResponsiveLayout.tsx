@@ -8,7 +8,7 @@ interface ResponsiveLayoutProps {
 
 export const ResponsiveLayout = ({ children }: ResponsiveLayoutProps) => {
   const { isMobile } = useDeviceType();
-  const bgClass = 'bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472]';
+  const bgClass = 'bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#1B263B] dark:via-[#232946] dark:to-[#2E3A59]';
 
   return (
     <div className={`min-h-screen ${bgClass} ${isMobile ? 'mobile-layout' : 'desktop-layout'}`}>

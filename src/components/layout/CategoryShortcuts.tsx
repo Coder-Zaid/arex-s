@@ -11,27 +11,29 @@ export const CategoryShortcuts = () => {
   const hasJewellery = categories.includes('Jewellery');
 
   return (
-    <div className="flex gap-4 px-4 py-3 overflow-x-auto bg-transparent">
+    <div className="flex gap-4 px-4 py-3 overflow-x-auto bg-transparent justify-end">
       {categories.map((cat, i) => {
         const Icon = icons[i] || Tag;
         return (
           <Link
             key={cat}
             to={`/search?category=${encodeURIComponent(cat.toLowerCase().replace(/\s+/g, '-'))}`}
-            className="flex flex-col items-center justify-center w-16 h-16 rounded-full bg-white/80 shadow text-blue-600 hover:bg-blue-100 transition"
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/90 shadow-lg font-semibold text-blue-700 hover:bg-blue-100 transition-all border border-blue-100 backdrop-blur-md"
+            style={{ fontFamily: 'Poppins, Montserrat, Arial, sans-serif', fontSize: '1rem', boxShadow: '0 4px 16px 0 rgba(0,0,0,0.10), 0 1.5px 0 0 #fff inset', WebkitBackdropFilter: 'blur(8px)', background: 'linear-gradient(120deg, #f8fafc 60%, #e0f2fe 100%)' }}
           >
-            <Icon className="h-7 w-7 mb-1" />
-            <span className="text-xs font-medium">{cat}</span>
+            <Icon className="h-6 w-6" />
+            <span>{cat}</span>
           </Link>
         );
       })}
       <Link
         key="Jewellery"
         to="/jewellery"
-        className="flex flex-col items-center justify-center w-16 h-16 rounded-full bg-white/80 shadow text-blue-600 hover:bg-blue-100 transition"
+        className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/90 shadow-lg font-semibold text-blue-700 hover:bg-blue-100 transition-all border border-blue-100 backdrop-blur-md"
+        style={{ fontFamily: 'Poppins, Montserrat, Arial, sans-serif', fontSize: '1rem', boxShadow: '0 4px 16px 0 rgba(0,0,0,0.10), 0 1.5px 0 0 #fff inset', WebkitBackdropFilter: 'blur(8px)', background: 'linear-gradient(120deg, #f8fafc 60%, #e0f2fe 100%)' }}
       >
-        <span className="text-2xl mb-1" role="img" aria-label="jewel">💍</span>
-        <span className="text-[10px] font-medium leading-tight text-center break-words">Jewellery</span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 22,9 12,22 2,9" fill="#38bdf8" stroke="#0ea5e9" strokeWidth="2"/><polygon points="12,2 17,9 12,22 7,9" fill="#fff" fillOpacity=".7"/></svg>
+        <span>Jewellery</span>
       </Link>
     </div>
   );

@@ -9,7 +9,7 @@ export const TopNavBar = () => {
   const { theme, toggleTheme } = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCity, setSelectedCity] = useState('Your City');
-  const cities = ['Ar - Dammam', 'Khobar', 'Dhahran', 'Al Thuqbah', 'Saihai'];
+  const cities = ['Ar - Dammam', 'Khobar', 'Dhahran', 'Al Thuqbah', 'Saihat'];
   const location = useLocation();
   const navigate = useNavigate();
   const showBack = location.pathname !== '/';
@@ -19,24 +19,24 @@ export const TopNavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-20 w-full h-16 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] flex items-center justify-between px-4 shadow-md">
+    <nav className="sticky top-0 z-20 w-full h-16 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#181c2f] dark:via-[#232946] dark:to-[#3a3f5a] flex items-center justify-between px-4 shadow-md">
       {/* Left: Logo and App Name */}
-      <div className="flex items-center gap-3">
-        <img src="/arex-bag.png" alt="AREX Logo" className="h-20 w-20" />
-        <span className="text-3xl font-bold text-black font-montserrat" style={{fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}>AREX</span>
+      <div className="flex items-center gap-0">
+        <img src="/arex-logo-1.png" alt="AREX Logo" className="h-20 w-20 -mt-2" />
+        <img src="/arex-name - Copy.png" alt="AREX Name" className="h-12 w-auto -ml-12" />
       </div>
       {/* Right: Action Icons */}
       <div className="flex items-center gap-5">
-        <button onClick={toggleTheme} className="text-white hover:text-blue-200 p-2 rounded-full transition">
+        <button onClick={toggleTheme} className="text-foreground hover:text-blue-200 p-2 rounded-full transition">
           {theme === 'light' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
         </button>
-        <Link to="/settings" className="text-white hover:text-blue-200 p-2 rounded-full transition">
+        <Link to="/settings" className="text-foreground hover:text-blue-200 p-2 rounded-full transition">
           <Settings className="h-6 w-6" />
         </Link>
-        <Link to="/cart" className="text-white hover:text-blue-200 p-2 rounded-full transition">
+        <Link to="/cart" className="text-foreground hover:text-blue-200 p-2 rounded-full transition">
           <ShoppingCart className="h-6 w-6" />
         </Link>
-        <Link to="/profile" className="text-white hover:text-blue-200 p-2 rounded-full transition">
+        <Link to="/profile" className="text-foreground hover:text-blue-200 p-2 rounded-full transition">
           <User className="h-6 w-6" />
         </Link>
       </div>
@@ -44,10 +44,10 @@ export const TopNavBar = () => {
       {drawerOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex">
           <div className="w-72 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] h-full shadow-lg p-6 flex flex-col">
-            <button onClick={() => setDrawerOpen(false)} className="mb-6 text-black dark:text-white hover:text-gray-700 dark:hover:text-white self-end text-2xl">✕</button>
+            <button onClick={() => setDrawerOpen(false)} className="mb-6 text-foreground hover:text-gray-700 dark:hover:text-white self-end text-2xl">✕</button>
             <div className="flex items-center mb-6">
               <img src="/arex-bag.png" alt="AREX Logo" className="h-20 w-20 mr-4" />
-              <span className="text-3xl font-bold text-black font-montserrat" style={{fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}>AREX</span>
+              <span className="text-3xl font-bold text-foreground font-montserrat" style={{fontFamily: 'Montserrat, Arial, sans-serif', fontWeight: 900}}>AREX</span>
             </div>
             <div className="mb-4">
               <div className="relative">
@@ -67,22 +67,22 @@ export const TopNavBar = () => {
               {theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
             <nav className="flex flex-col gap-4 mt-2">
-              <Link to="/" className="flex items-center gap-3 text-black dark:text-white hover:text-gray-700 dark:hover:text-white text-lg">
+              <Link to="/" className="flex items-center gap-3 text-foreground hover:text-gray-700 dark:hover:text-white text-lg">
                 <HomeIcon className="h-5 w-5" /> Home
               </Link>
-              <Link to="/orders" className="flex items-center gap-3 text-black dark:text-white hover:text-gray-700 dark:hover:text-white text-lg">
+              <Link to="/orders" className="flex items-center gap-3 text-foreground hover:text-gray-700 dark:hover:text-white text-lg">
                 <List className="h-5 w-5" /> Orders
               </Link>
-              <Link to="/cart" className="flex items-center gap-3 text-black dark:text-white hover:text-gray-700 dark:hover:text-white text-lg">
+              <Link to="/cart" className="flex items-center gap-3 text-foreground hover:text-gray-700 dark:hover:text-white text-lg">
                 <ShoppingCart className="h-5 w-5" /> Cart
               </Link>
-              <Link to="/profile" className="flex items-center gap-3 text-black dark:text-white hover:text-gray-700 dark:hover:text-white text-lg">
+              <Link to="/profile" className="flex items-center gap-3 text-foreground hover:text-gray-700 dark:hover:text-white text-lg">
                 <User className="h-5 w-5" /> Profile
               </Link>
-              <Link to="/settings" className="flex items-center gap-3 text-black dark:text-white hover:text-gray-700 dark:hover:text-white text-lg">
+              <Link to="/settings" className="flex items-center gap-3 text-foreground hover:text-gray-700 dark:hover:text-white text-lg">
                 <Settings className="h-5 w-5" /> Settings
               </Link>
-              <Link to="/jewellery" className="flex items-center gap-3 text-black dark:text-white hover:text-gray-700 dark:hover:text-white text-lg">
+              <Link to="/jewellery" className="flex items-center gap-3 text-foreground hover:text-gray-700 dark:hover:text-white text-lg">
                 <span className="h-5 w-5">💍</span> Jewellery
               </Link>
             </nav>
