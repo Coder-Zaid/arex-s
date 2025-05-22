@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -68,6 +68,8 @@ const ProductDetailPage = () => {
   const [reviewText, setReviewText] = useState('');
   const [rating, setRating] = useState(5);
   const [reviews, setReviews] = useState(mockReviews);
+  const imageScrollRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
   
   const product = products.find(p => p.id === id);
   
@@ -83,6 +85,46 @@ const ProductDetailPage = () => {
   // Use product.images if available, otherwise fallback to [product.image]
   const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
   
+  // Auto-scroll every 5 seconds
+  useEffect(() => {
+    if (productImages.length <= 1) return;
+    if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+    autoScrollRef.current = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
+    }, 5000);
+    return () => {
+      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+    };
+  }, [productImages.length]);
+
+  // Scroll to the current image when index changes
+  useEffect(() => {
+    if (imageScrollRef.current) {
+      imageScrollRef.current.scrollTo({
+        left: currentImageIndex * imageScrollRef.current.offsetWidth,
+        behavior: 'smooth',
+      });
+    }
+  }, [currentImageIndex]);
+
+  // Touch/drag scroll support
+  let startX = 0;
+  let scrollLeft = 0;
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    startX = e.touches[0].clientX;
+    if (imageScrollRef.current) scrollLeft = imageScrollRef.current.scrollLeft;
+  };
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!imageScrollRef.current) return;
+    const x = e.touches[0].clientX - startX;
+    imageScrollRef.current.scrollLeft = scrollLeft - x;
+  };
+  const handleTouchEnd = () => {
+    if (!imageScrollRef.current) return;
+    const newIndex = Math.round(imageScrollRef.current.scrollLeft / imageScrollRef.current.offsetWidth);
+    setCurrentImageIndex(newIndex);
+  };
+
   const handleWishlistToggle = () => {
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
@@ -118,10 +160,6 @@ const ProductDetailPage = () => {
         description: "Product link copied to clipboard",
       });
     }
-  };
-
-  const handleImageHover = (index: number) => {
-    setCurrentImageIndex(index);
   };
 
   const handleSubmitReview = () => {
@@ -174,33 +212,43 @@ const ProductDetailPage = () => {
       
       {/* Product Image Gallery */}
       <div className="relative">
-        {/* Main image */}
-        <img 
-          src={productImages[currentImageIndex]} 
-          alt={product.name} 
-          className="w-1/3 h-1/3 object-contain bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] rounded mx-auto transition-opacity duration-300"
-        />
-        
+        {/* Main image carousel - horizontally scrollable */}
+        <div
+          ref={imageScrollRef}
+          className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory w-full h-64 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 dark:from-[#0a2240] dark:via-[#1e3a5c] dark:to-[#274472] rounded mx-auto transition-opacity duration-300"
+          style={{ scrollBehavior: 'smooth' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {productImages.map((img, idx) => (
+            <img
+              key={idx}
+              src={img}
+              alt={`${product.name} view ${idx + 1}`}
+              className="object-contain w-full h-64 flex-shrink-0 snap-center"
+              style={{ minWidth: '100%' }}
+            />
+          ))}
+        </div>
         {/* Image thumbnails */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
           {productImages.map((img, index) => (
-            <div 
+            <div
               key={index}
               className={`w-16 h-16 rounded-md overflow-hidden border-2 ${
                 currentImageIndex === index ? 'border-brand-blue' : 'border-white/50'
               } cursor-pointer transition-all duration-200 hover:scale-110 bg-white`}
-              onMouseEnter={() => handleImageHover(index)}
               onClick={() => setCurrentImageIndex(index)}
             >
-              <img 
-                src={img} 
-                alt={`Product view ${index + 1}`} 
+              <img
+                src={img}
+                alt={`Product view ${index + 1}`}
                 className="w-full h-full object-contain"
               />
             </div>
           ))}
         </div>
-        
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-1">
           {product.onSale && (
